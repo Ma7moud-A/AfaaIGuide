@@ -4,3 +4,4 @@ backend/.env
 .DS_Store
 Thumbs.db
 *.log
+backend/uploads/
