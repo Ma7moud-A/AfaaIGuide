@@ -8,7 +8,10 @@ const uploadsRoot = path.resolve(
     "../../uploads"
 );
 
-async function saveImageLocally(fileBuffer) {
+async function saveImageLocally(
+    fileBuffer,
+    category = "chat"
+) {
     if (!Buffer.isBuffer(fileBuffer) || fileBuffer.length === 0) {
         throw new Error("A valid image buffer is required");
     }
@@ -18,8 +21,18 @@ async function saveImageLocally(fileBuffer) {
     const year = String(now.getUTCFullYear());
     const month = String(now.getUTCMonth() + 1).padStart(2, "0");
 
-    const relativeDirectory = path.join(
+    const allowedCategories = new Set([
         "chat",
+        "expert-submissions",
+        "species",
+    ]);
+
+    const safeCategory = allowedCategories.has(category)
+        ? category
+        : "chat";
+
+    const relativeDirectory = path.join(
+        safeCategory,
         year,
         month
     );

@@ -3,6 +3,7 @@ const cors = require("cors");
 const errorHandler = require("./middleware/errorHandler");
 const authRoutes = require("./routes/authRoutes");
 const chatRoutes = require("./routes/chatRoutes");
+const expertRoutes = require("./routes/expertRoutes");
 
 const speciesRoutes = require("./routes/speciesRoutes");
 
@@ -21,6 +22,7 @@ app.get("/api/health", (req, res) => {
 app.use("/api/species", speciesRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/expert", expertRoutes);
 app.use((req, res) => {
   return res.status(404).json({
     success: false,
