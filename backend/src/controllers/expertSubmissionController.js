@@ -1,5 +1,3 @@
-const fs = require("fs/promises");
-
 const pool = require("../config/db");
 
 const {
@@ -111,9 +109,6 @@ async function createSpeciesSubmission(req, res) {
       });
     }
 
-    /*
-     * نعالج الصور قبل فتح Transaction طويلة.
-     */
     for (const file of files) {
       const savedImage = await saveImageLocally(
         file.buffer,
@@ -262,6 +257,164 @@ async function createSpeciesSubmission(req, res) {
   }
 }
 
+async function getMySpeciesSubmissions(req, res) {
+  try {
+    const submittedBy = req.user.id;
+
+    const result = await pool.query(
+      `
+      SELECT
+        ess.*,
+
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', esi.id,
+              'submission_id', esi.submission_id,
+              'media_asset_id', esi.media_asset_id,
+              'is_primary', esi.is_primary,
+              'sort_order', esi.sort_order,
+              'media_asset', json_build_object(
+                'id', ma.id,
+                'storage_key', ma.storage_key,
+                'original_filename', ma.original_filename,
+                'mime_type', ma.mime_type,
+                'size_bytes', ma.size_bytes,
+                'width', ma.width,
+                'height', ma.height,
+                'visibility', ma.visibility
+              )
+            )
+            ORDER BY esi.sort_order ASC
+          ) FILTER (WHERE esi.id IS NOT NULL),
+          '[]'::json
+        ) AS images
+
+      FROM expert_species_submissions ess
+
+      LEFT JOIN expert_submission_images esi
+        ON esi.submission_id = ess.id
+
+      LEFT JOIN media_assets ma
+        ON ma.id = esi.media_asset_id
+
+      WHERE ess.submitted_by = $1
+
+      GROUP BY ess.id
+
+      ORDER BY ess.created_at DESC;
+      `,
+      [submittedBy]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Species submissions retrieved successfully",
+      data: {
+        submissions: result.rows,
+        count: result.rows.length,
+      },
+    });
+  } catch (error) {
+    console.error(
+      "Error retrieving expert species submissions:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve species submissions",
+    });
+  }
+}
+async function getMySpeciesSubmissionById(req, res) {
+  try {
+    const submittedBy = req.user.id;
+    const submissionId = Number(req.params.id);
+
+    if (!Number.isInteger(submissionId) || submissionId <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid submission id",
+        code: "INVALID_SUBMISSION_ID",
+      });
+    }
+
+    const result = await pool.query(
+      `
+      SELECT
+        ess.*,
+
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', esi.id,
+              'submission_id', esi.submission_id,
+              'media_asset_id', esi.media_asset_id,
+              'is_primary', esi.is_primary,
+              'sort_order', esi.sort_order,
+              'media_asset', json_build_object(
+                'id', ma.id,
+                'storage_key', ma.storage_key,
+                'original_filename', ma.original_filename,
+                'mime_type', ma.mime_type,
+                'size_bytes', ma.size_bytes,
+                'width', ma.width,
+                'height', ma.height,
+                'visibility', ma.visibility
+              )
+            )
+            ORDER BY esi.sort_order ASC
+          ) FILTER (WHERE esi.id IS NOT NULL),
+          '[]'::json
+        ) AS images
+
+      FROM expert_species_submissions ess
+
+      LEFT JOIN expert_submission_images esi
+        ON esi.submission_id = ess.id
+
+      LEFT JOIN media_assets ma
+        ON ma.id = esi.media_asset_id
+
+      WHERE ess.id = $1
+        AND ess.submitted_by = $2
+
+      GROUP BY ess.id;
+      `,
+      [submissionId, submittedBy]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Species submission not found",
+        code: "SUBMISSION_NOT_FOUND",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Species submission retrieved successfully",
+      data: {
+        submission: result.rows[0],
+      },
+    });
+  } catch (error) {
+    console.error(
+      "Error retrieving expert species submission:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve species submission",
+    });
+  }
+}
+
 module.exports = {
   createSpeciesSubmission,
+  getMySpeciesSubmissions,
+  getMySpeciesSubmissionById,
 };

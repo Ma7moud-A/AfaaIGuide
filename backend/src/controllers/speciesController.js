@@ -17,10 +17,57 @@ async function getAllSpecies(req, res) {
         s.maximum_size_cm,
         s.behavior,
         s.what_to_do,
-        s.what_not_to_do
+        s.what_not_to_do,
+
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', si.id,
+              'is_primary', si.is_primary,
+              'sort_order', si.sort_order,
+              'storage_key', ma.storage_key,
+              'original_filename', ma.original_filename,
+              'mime_type', ma.mime_type,
+              'width', ma.width,
+              'height', ma.height
+            )
+            ORDER BY
+              si.is_primary DESC,
+              si.sort_order ASC,
+              si.id ASC
+          ) FILTER (
+            WHERE si.id IS NOT NULL
+          ),
+          '[]'::json
+        ) AS images
+
       FROM species s
+
       JOIN animal_groups ag
         ON ag.id = s.animal_group_id
+
+      LEFT JOIN species_images si
+        ON si.species_id = s.id
+
+      LEFT JOIN media_assets ma
+        ON ma.id = si.media_asset_id
+
+      GROUP BY
+        s.id,
+        s.animal_group_id,
+        ag.code,
+        s.arabic_name,
+        s.english_name,
+        s.scientific_name,
+        s.description,
+        s.venom_status,
+        s.danger_level,
+        s.minimum_size_cm,
+        s.maximum_size_cm,
+        s.behavior,
+        s.what_to_do,
+        s.what_not_to_do
+
       ORDER BY s.id;
     `);
 
@@ -30,7 +77,10 @@ async function getAllSpecies(req, res) {
       data: result.rows,
     });
   } catch (error) {
-    console.error("Error fetching species:", error);
+    console.error(
+      "Error fetching species:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -59,11 +109,58 @@ async function getSpeciesById(req, res) {
         s.maximum_size_cm,
         s.behavior,
         s.what_to_do,
-        s.what_not_to_do
+        s.what_not_to_do,
+
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'id', si.id,
+              'is_primary', si.is_primary,
+              'sort_order', si.sort_order,
+              'storage_key', ma.storage_key,
+              'original_filename', ma.original_filename,
+              'mime_type', ma.mime_type,
+              'width', ma.width,
+              'height', ma.height
+            )
+            ORDER BY
+              si.is_primary DESC,
+              si.sort_order ASC,
+              si.id ASC
+          ) FILTER (
+            WHERE si.id IS NOT NULL
+          ),
+          '[]'::json
+        ) AS images
+
       FROM species s
+
       JOIN animal_groups ag
         ON ag.id = s.animal_group_id
-      WHERE s.id = $1;
+
+      LEFT JOIN species_images si
+        ON si.species_id = s.id
+
+      LEFT JOIN media_assets ma
+        ON ma.id = si.media_asset_id
+
+      WHERE s.id = $1
+
+      GROUP BY
+        s.id,
+        s.animal_group_id,
+        ag.code,
+        s.arabic_name,
+        s.english_name,
+        s.scientific_name,
+        s.description,
+        s.venom_status,
+        s.danger_level,
+        s.minimum_size_cm,
+        s.maximum_size_cm,
+        s.behavior,
+        s.what_to_do,
+        s.what_not_to_do;
       `,
       [id]
     );
@@ -80,7 +177,10 @@ async function getSpeciesById(req, res) {
       data: result.rows[0],
     });
   } catch (error) {
-    console.error("Error fetching species by id:", error);
+    console.error(
+      "Error fetching species by id:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
@@ -146,30 +246,37 @@ async function createSpecies(req, res) {
 
     return res.status(201).json({
       success: true,
-      message: "Species created successfully",
+      message:
+        "Species created successfully",
       data: result.rows[0],
     });
   } catch (error) {
-    console.error("Error creating species:", error);
+    console.error(
+      "Error creating species:",
+      error
+    );
 
     if (error.code === "23505") {
       return res.status(409).json({
         success: false,
-        message: "A species with this scientific name already exists",
+        message:
+          "A species with this scientific name already exists",
       });
     }
 
     if (error.code === "23503") {
       return res.status(400).json({
         success: false,
-        message: "The selected animal group does not exist",
+        message:
+          "The selected animal group does not exist",
       });
     }
 
     if (error.code === "23514") {
       return res.status(400).json({
         success: false,
-        message: "One or more values violate a database rule",
+        message:
+          "One or more values violate a database rule",
       });
     }
 
@@ -244,30 +351,37 @@ async function updateSpecies(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Species updated successfully",
+      message:
+        "Species updated successfully",
       data: result.rows[0],
     });
   } catch (error) {
-    console.error("Error updating species:", error);
+    console.error(
+      "Error updating species:",
+      error
+    );
 
     if (error.code === "23505") {
       return res.status(409).json({
         success: false,
-        message: "A species with this scientific name already exists",
+        message:
+          "A species with this scientific name already exists",
       });
     }
 
     if (error.code === "23503") {
       return res.status(400).json({
         success: false,
-        message: "The selected animal group does not exist",
+        message:
+          "The selected animal group does not exist",
       });
     }
 
     if (error.code === "23514") {
       return res.status(400).json({
         success: false,
-        message: "One or more values violate a database rule",
+        message:
+          "One or more values violate a database rule",
       });
     }
 
@@ -304,11 +418,15 @@ async function deleteSpecies(req, res) {
 
     return res.status(200).json({
       success: true,
-      message: "Species deleted successfully",
+      message:
+        "Species deleted successfully",
       data: result.rows[0],
     });
   } catch (error) {
-    console.error("Error deleting species:", error);
+    console.error(
+      "Error deleting species:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
