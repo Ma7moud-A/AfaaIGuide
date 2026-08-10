@@ -46,9 +46,9 @@ function ExpertSubmissionPage() {
     venom_status: "UNKNOWN",
     minimum_size_cm: "",
     maximum_size_cm: "",
-    native_habitat: "",
-    behavior: "",
-    notes: "",
+    habitat_expert_notes: "",
+    behavior_expert_notes: "",
+    expert_notes: "",
   });
 
   const [selectedImages, setSelectedImages] = useState([]);
@@ -176,9 +176,9 @@ function ExpertSubmissionPage() {
       venom_status: "UNKNOWN",
       minimum_size_cm: "",
       maximum_size_cm: "",
-      native_habitat: "",
-      behavior: "",
-      notes: "",
+      habitat_expert_notes: "",
+      behavior_expert_notes: "",
+      expert_notes: "",
     });
 
     setSelectedImages([]);
@@ -253,24 +253,24 @@ function ExpertSubmissionPage() {
         );
       }
 
-      if (formData.native_habitat.trim()) {
+      if (formData.habitat_notes.trim()) {
         requestData.append(
-          "native_habitat",
-          formData.native_habitat.trim()
+          "habitat_notes",
+          formData.habitat_notes.trim()
         );
       }
 
-      if (formData.behavior.trim()) {
+      if (formData.behavior_notes.trim()) {
         requestData.append(
-          "behavior",
-          formData.behavior.trim()
+          "behavior_notes",
+          formData.behavior_notes.trim()
         );
       }
 
-      if (formData.notes.trim()) {
+      if (formData.expert_notes.trim()) {
         requestData.append(
-          "notes",
-          formData.notes.trim()
+          "expert_notes",
+          formData.expert_notes.trim()
         );
       }
 
@@ -445,9 +445,9 @@ function ExpertSubmissionPage() {
               <span>الموطن أو منطقة الانتشار</span>
 
               <input
-                name="native_habitat"
+                name="habitat_notes"
                 type="text"
-                value={formData.native_habitat}
+                value={formData.habitat_notes}
                 maxLength="300"
                 placeholder="مثال: المناطق الصحراوية والصخرية"
                 disabled={submitting}
@@ -489,9 +489,9 @@ function ExpertSubmissionPage() {
               <span>السلوك العام</span>
 
               <textarea
-                name="behavior"
+                name="behavior_notes"
                 rows="4"
-                value={formData.behavior}
+                value={formData.behavior_notes}
                 maxLength="1500"
                 placeholder="اكتب ملاحظات مختصرة عن نشاطها وسلوكها..."
                 disabled={submitting}
@@ -503,9 +503,9 @@ function ExpertSubmissionPage() {
               <span>ملاحظات إضافية</span>
 
               <textarea
-                name="notes"
+                name="expert_notes"
                 rows="4"
-                value={formData.notes}
+                value={formData.expert_notes}
                 maxLength="2000"
                 placeholder="أي معلومات تساعد مدير المحتوى في مراجعة الاقتراح..."
                 disabled={submitting}

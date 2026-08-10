@@ -13,10 +13,15 @@ import ExpertSubmissionsPage from "./pages/ExpertSubmissionsPage";
 import ExpertSubmissionDetailsPage from "./pages/ExpertSubmissionDetailsPage";
 import ContentSubmissionsPage from "./pages/ContentSubmissionsPage";
 import ContentSubmissionReviewPage from "./pages/ContentSubmissionReviewPage";
+import ContentSpeciesPage from "./pages/ContentSpeciesPage";
+import ContentSpeciesEditPage from "./pages/ContentSpeciesEditPage";
+import NotFoundPage from "./pages/NotFoundPage";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <div className="app" dir="rtl">
         <Navbar />
 
@@ -50,6 +55,13 @@ function App() {
             path="/content/submissions/:id"
             element={<ContentSubmissionReviewPage />}
           />
+          <Route path="/content/species" element={<ContentSpeciesPage />} />
+
+          <Route
+            path="/content/species/:id/edit"
+            element={<ContentSpeciesEditPage />}
+          />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
         <footer className="footer">

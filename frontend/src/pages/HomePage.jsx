@@ -7,14 +7,20 @@ import {
   BookOpen,
   Camera,
   CheckCircle2,
+  Globe2,
   ImageUp,
   Info,
   Leaf,
+  Link2,
+  MessageCircle,
   MoveLeft,
   ShieldAlert,
   Sparkles,
+  UserRound,
   XCircle,
 } from "lucide-react";
+
+import mahmoudProfile from "../assets/mahmoud-profile.jpg";
 
 const services = [
   {
@@ -94,7 +100,6 @@ function getDangerInfo(dangerLevel) {
   }
 }
 
-
 function getMediaStorageKey(media) {
   return (
     media?.storage_key ||
@@ -107,18 +112,14 @@ function getMediaStorageKey(media) {
 
 function getSpeciesImageUrl(species) {
   const directImage =
-    species?.primary_image ||
-    species?.primaryImage ||
-    species?.image ||
-    null;
+    species?.primary_image || species?.primaryImage || species?.image || null;
 
   let storageKey = getMediaStorageKey(directImage);
 
   if (!storageKey && Array.isArray(species?.images)) {
     const primaryImage =
-      species.images.find(
-        (image) => image?.is_primary || image?.isPrimary
-      ) || species.images[0];
+      species.images.find((image) => image?.is_primary || image?.isPrimary) ||
+      species.images[0];
 
     storageKey = getMediaStorageKey(primaryImage);
   }
@@ -372,10 +373,7 @@ function HomePage() {
                         {dangerInfo.label}
                       </span>
 
-                      <Link
-                        className="card-button"
-                        to={`/species/${snake.id}`}
-                      >
+                      <Link className="card-button" to={`/species/${snake.id}`}>
                         عرض التفاصيل
                         <ArrowLeft size={16} />
                       </Link>
@@ -417,6 +415,121 @@ function HomePage() {
               <p>{text}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section id="about" className="about-project section">
+        <div className="page-container">
+          <div className="section-heading reveal">
+            <div>
+              <span className="section-heading__label">
+                <UserRound size={17} />
+                عن المشروع
+              </span>
+
+              <h2>من يقف خلف Afaai Guide؟</h2>
+
+              <p>
+                مشروع تقني فلسطيني يهدف إلى جعل المعرفة المتعلقة بالأفاعي
+                وإرشادات السلامة أكثر سهولة ووضوحًا للجميع.
+              </p>
+            </div>
+          </div>
+
+          <div className="about-project__card reveal">
+            <div className="about-project__image-wrapper">
+              <img
+                className="about-project__image"
+                src={mahmoudProfile}
+                alt="Mahmoud Abu Amria - Founder and Developer of Afaai Guide"
+              />
+
+              <div className="about-project__image-badge">
+                Founder & Developer
+              </div>
+            </div>
+
+            <div className="about-project__content">
+              <span className="about-project__label">مؤسس ومطوّر المنصة</span>
+
+              <h3>Eng. Mahmoud Abu Amria</h3>
+
+              <p className="about-project__role">
+                Software Engineer
+                <span>•</span>
+                Founder & Developer of Afaai Guide
+              </p>
+
+              <p className="about-project__description">
+                تم تطوير Afaai Guide بهدف بناء منصة تساعد المستخدم على التعرّف
+                الأولي على الأفاعي، الوصول إلى معلومات واضحة حول الأنواع،
+                والحصول على إرشادات سلامة سريعة باستخدام التقنيات الحديثة
+                والذكاء الاصطناعي.
+              </p>
+
+              <p className="about-project__description">
+                المنصة في نسختها الأولى، وستستمر في التطور بالتعاون مع الخبراء
+                بهدف تحسين دقة المعلومات وتجربة الاستخدام وتوسيع قاعدة الأنواع
+                مستقبلًا.
+              </p>
+
+              <div className="about-project__socials">
+                <a
+                  className="about-social-link about-social-link--whatsapp"
+                  href="https://wa.me/972595736942"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="التواصل عبر واتساب"
+                >
+                  <MessageCircle size={20} />
+
+                  <span>
+                    <strong>WhatsApp</strong>
+                    <small>تواصل معي</small>
+                  </span>
+                </a>
+
+                <a
+                  className="about-social-link"
+                  href="https://www.linkedin.com/in/mahmoud-abu-amria"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="LinkedIn"
+                >
+                  <Link2 size={20} />
+
+                  <span>
+                    <strong>LinkedIn</strong>
+                    <small>الملف المهني</small>
+                  </span>
+                </a>
+
+                <a
+                  className="about-social-link"
+                  href="https://www.facebook.com/mahmmoud.farhan.2025"
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Facebook"
+                >
+                  <Globe2  size={20} />
+
+                  <span>
+                    <strong>Facebook</strong>
+                    <small>حسابي الشخصي</small>
+                  </span>
+                </a>
+              </div>
+
+              <div className="about-project__note">
+                <Info size={18} />
+
+                <p>
+                  Afaai Guide أداة مساعدة وليست بديلًا عن المختصين أو الجهات
+                  الطبية والطوارئ في الحالات الخطرة.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

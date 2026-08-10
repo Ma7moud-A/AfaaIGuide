@@ -1,28 +1,39 @@
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  Link,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+
 import {
   Bot,
   BookOpen,
+  ClipboardList,
+  Database,
+  FileCheck2,
   Home,
   ImageUp,
   LogIn,
   LogOut,
-  Menu,
+  PlusCircle,
   ShieldCheck,
   User,
-  X,
-  PlusCircle,
-  ClipboardList,
-  FileCheck2,
 } from "lucide-react";
 
 function getStoredUser() {
   try {
-    const storedUser = localStorage.getItem("afaai_user");
+    const storedUser =
+      localStorage.getItem("afaai_user");
 
-    return storedUser ? JSON.parse(storedUser) : null;
+    return storedUser
+      ? JSON.parse(storedUser)
+      : null;
   } catch (error) {
-    console.error("Failed to read stored user:", error);
+    console.error(
+      "Failed to read stored user:",
+      error
+    );
+
     return null;
   }
 }
@@ -47,11 +58,10 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [user, setUser] = useState(getStoredUser);
+  const [user, setUser] =
+    useState(getStoredUser);
 
   useEffect(() => {
-    setMenuOpen(false);
     setUser(getStoredUser());
   }, [location.pathname]);
 
@@ -60,64 +70,82 @@ function Navbar() {
       setUser(getStoredUser());
     }
 
-    window.addEventListener("storage", handleStorageChange);
-    window.addEventListener("afaai-auth-change", handleStorageChange);
+    window.addEventListener(
+      "storage",
+      handleStorageChange
+    );
+
+    window.addEventListener(
+      "afaai-auth-change",
+      handleStorageChange
+    );
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener(
+        "storage",
+        handleStorageChange
+      );
 
-      window.removeEventListener("afaai-auth-change", handleStorageChange);
+      window.removeEventListener(
+        "afaai-auth-change",
+        handleStorageChange
+      );
     };
   }, []);
-
-  function closeMenu() {
-    setMenuOpen(false);
-  }
 
   function handleLogout() {
     localStorage.removeItem("afaai_token");
     localStorage.removeItem("afaai_user");
 
     setUser(null);
-    closeMenu();
 
-    window.dispatchEvent(new Event("afaai-auth-change"));
+    window.dispatchEvent(
+      new Event("afaai-auth-change")
+    );
 
     navigate("/");
   }
 
+  const isContentAdmin =
+    user?.roles?.some((role) =>
+      ["CONTENT_ADMIN", "ADMIN"].includes(role)
+    );
+
+  const isExpert =
+    user?.roles?.some((role) =>
+      ["EXPERT", "ADMIN"].includes(role)
+    );
+
   return (
     <header className="navbar">
       <div className="page-container navbar__content">
-        <Link to="/" className="navbar__brand" onClick={closeMenu}>
-          <div className="brand__logo">أ</div>
+        <Link
+          className="brand"
+          to="/"
+        >
+          <div className="brand__logo">
+            أ
+          </div>
 
           <div className="brand__text">
-            <strong>Afaai Guide</strong>
-            <span>دليل أفاعي فلسطين</span>
+            <strong>
+              Afaai Guide
+            </strong>
+
+            <span>
+              دليل أفاعي فلسطين
+            </span>
           </div>
         </Link>
 
-        <button
-          type="button"
-          className="navbar__menu-button"
-          aria-label={menuOpen ? "إغلاق القائمة" : "فتح القائمة"}
-          onClick={() => setMenuOpen((current) => !current)}
-        >
-          {menuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
-
-        <nav
-          className={`navbar__links ${menuOpen ? "navbar__links--open" : ""}`}
-        >
+        <nav className="navbar__links">
           <Link
             to="/"
             className={
-              location.pathname === "" || location.pathname === "/"
+              location.pathname === "/"
                 ? "is-active"
                 : ""
             }
-            onClick={closeMenu}
           >
             <Home size={17} />
             الرئيسية
@@ -126,9 +154,12 @@ function Navbar() {
           <Link
             to="/species"
             className={
-              location.pathname.startsWith("/species") ? "is-active" : ""
+              location.pathname.startsWith(
+                "/species"
+              )
+                ? "is-active"
+                : ""
             }
-            onClick={closeMenu}
           >
             <BookOpen size={17} />
             دليل الأفاعي
@@ -136,8 +167,12 @@ function Navbar() {
 
           <Link
             to="/identify"
-            className={location.pathname === "/identify" ? "is-active" : ""}
-            onClick={closeMenu}
+            className={
+              location.pathname ===
+              "/identify"
+                ? "is-active"
+                : ""
+            }
           >
             <ImageUp size={17} />
             تعرّف على أفعى
@@ -145,53 +180,90 @@ function Navbar() {
 
           <Link
             to="/chat"
-            className={location.pathname === "/chat" ? "is-active" : ""}
-            onClick={closeMenu}
+            className={
+              location.pathname === "/chat"
+                ? "is-active"
+                : ""
+            }
           >
             <Bot size={17} />
             المساعد
           </Link>
-          {user?.roles?.some((role) =>
-            ["CONTENT_ADMIN", "ADMIN"].includes(role),
-          ) && (
-            <Link
-              to="/content/submissions"
-              className={
-                location.pathname.startsWith("/content") ? "is-active" : ""
-              }
-              onClick={closeMenu}
-            >
-              <FileCheck2 size={17} />
-              مراجعة الاقتراحات
-            </Link>
+
+          {isContentAdmin && (
+            <>
+              <Link
+                to="/content/submissions"
+                className={
+                  location.pathname.startsWith(
+                    "/content/submissions"
+                  )
+                    ? "is-active"
+                    : ""
+                }
+              >
+                <FileCheck2 size={17} />
+                مراجعة الاقتراحات
+              </Link>
+
+              <Link
+                to="/content/species"
+                className={
+                  location.pathname.startsWith(
+                    "/content/species"
+                  )
+                    ? "is-active"
+                    : ""
+                }
+              >
+                <Database size={17} />
+                إدارة الأنواع
+              </Link>
+            </>
           )}
-          {user?.roles?.some((role) => ["EXPERT", "ADMIN"].includes(role)) && (
-            <Link
-              to="/expert/submissions/new"
-              className={
-                location.pathname.startsWith("/expert") ? "is-active" : ""
-              }
-              onClick={closeMenu}
-            >
-              <PlusCircle size={17} />
-              إضافة أفعى
-            </Link>
-          )}
-          {user?.roles?.some((role) => ["EXPERT", "ADMIN"].includes(role)) && (
-            <Link
-              to="/expert/submissions"
-              className={
-                location.pathname === "/expert/submissions" ? "is-active" : ""
-              }
-              onClick={closeMenu}
-            >
-              <ClipboardList size={17} />
-              اقتراحاتي
-            </Link>
+
+          {isExpert && (
+            <>
+              <Link
+                to="/expert/submissions/new"
+                className={
+                  location.pathname ===
+                  "/expert/submissions/new"
+                    ? "is-active"
+                    : ""
+                }
+              >
+                <PlusCircle size={17} />
+                إضافة أفعى
+              </Link>
+
+              <Link
+                to="/expert/submissions"
+                className={
+                  location.pathname ===
+                  "/expert/submissions" ||
+                  (
+                    location.pathname.startsWith(
+                      "/expert/submissions/"
+                    ) &&
+                    location.pathname !==
+                      "/expert/submissions/new"
+                  )
+                    ? "is-active"
+                    : ""
+                }
+              >
+                <ClipboardList size={17} />
+                اقتراحاتي
+              </Link>
+            </>
           )}
 
           {!user ? (
-            <Link className="navbar__login" to="/login" onClick={closeMenu}>
+            <Link
+              className="navbar__login"
+              to="/login"
+            >
               <LogIn size={17} />
               تسجيل الدخول
             </Link>
@@ -199,19 +271,34 @@ function Navbar() {
             <div className="navbar__user-area">
               <div className="navbar__user-info">
                 <div className="navbar__user-avatar">
-                  {user.roles?.some((role) =>
-                    ["EXPERT", "ADMIN", "CONTENT_ADMIN"].includes(role),
+                  {user.roles?.some(
+                    (role) =>
+                      [
+                        "EXPERT",
+                        "ADMIN",
+                        "CONTENT_ADMIN",
+                      ].includes(role)
                   ) ? (
-                    <ShieldCheck size={18} />
+                    <ShieldCheck
+                      size={18}
+                    />
                   ) : (
                     <User size={18} />
                   )}
                 </div>
 
                 <div>
-                  <strong>{user.username || user.email || "المستخدم"}</strong>
+                  <strong>
+                    {user.username ||
+                      user.email ||
+                      "المستخدم"}
+                  </strong>
 
-                  <span>{getRoleLabel(user.roles)}</span>
+                  <span>
+                    {getRoleLabel(
+                      user.roles
+                    )}
+                  </span>
                 </div>
               </div>
 
