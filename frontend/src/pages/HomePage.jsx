@@ -143,8 +143,8 @@ function HomePage() {
 
     async function loadFeaturedSpecies() {
       try {
-        axios.get(`${API_URL}/species`);
-
+        const response = await axios.get(`${API_URL}/species`);
+        
         if (!requestCancelled) {
           const species = Array.isArray(response.data?.data)
             ? response.data.data
