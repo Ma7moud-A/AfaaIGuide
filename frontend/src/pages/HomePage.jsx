@@ -22,6 +22,8 @@ import {
 
 import mahmoudProfile from "../assets/mahmoud-profile.jpg";
 
+import { API_URL, getUploadUrl } from "../config/api";
+
 const services = [
   {
     icon: ImageUp,
@@ -128,7 +130,7 @@ function getSpeciesImageUrl(species) {
     return "";
   }
 
-  return `http://localhost:3000/uploads/${storageKey}`;
+  return getUploadUrl(storageKey);
 }
 
 function HomePage() {
@@ -141,7 +143,7 @@ function HomePage() {
 
     async function loadFeaturedSpecies() {
       try {
-        const response = await axios.get("http://localhost:3000/api/species");
+        axios.get(`${API_URL}/species`);
 
         if (!requestCancelled) {
           const species = Array.isArray(response.data?.data)
@@ -511,7 +513,7 @@ function HomePage() {
                   rel="noreferrer"
                   aria-label="Facebook"
                 >
-                  <Globe2  size={20} />
+                  <Globe2 size={20} />
 
                   <span>
                     <strong>Facebook</strong>

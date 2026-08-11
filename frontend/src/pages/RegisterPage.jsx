@@ -13,7 +13,7 @@ import {
   UserPlus,
 } from "lucide-react";
 
-const API_URL = "http://localhost:3000/api";
+import { API_URL } from "../config/api";
 
 function RegisterPage() {
   const navigate = useNavigate();

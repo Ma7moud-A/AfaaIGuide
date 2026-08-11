@@ -15,7 +15,8 @@ import {
   UploadCloud,
 } from "lucide-react";
 
-const API_URL = "http://localhost:3000/api";
+import { API_URL } from "../config/api";
+
 const MAX_IMAGES = 5;
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
 
@@ -36,9 +37,7 @@ function ExpertSubmissionPage() {
   const token = localStorage.getItem("afaai_token");
 
   const isExpert = useMemo(() => {
-    return user?.roles?.some((role) =>
-      ["EXPERT", "ADMIN"].includes(role)
-    );
+    return user?.roles?.some((role) => ["EXPERT", "ADMIN"].includes(role));
   }, [user]);
 
   const [formData, setFormData] = useState({
@@ -71,11 +70,7 @@ function ExpertSubmissionPage() {
   }
 
   function validateImage(file) {
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-    ];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
     if (!allowedTypes.includes(file.type)) {
       return `${file.name}: نوع الصورة غير مدعوم.`;
@@ -95,10 +90,7 @@ function ExpertSubmissionPage() {
       return;
     }
 
-    if (
-      selectedImages.length + filesArray.length >
-      MAX_IMAGES
-    ) {
+    if (selectedImages.length + filesArray.length > MAX_IMAGES) {
       setError(`يمكن رفع ${MAX_IMAGES} صور كحد أقصى.`);
       return;
     }
@@ -118,10 +110,7 @@ function ExpertSubmissionPage() {
       previewUrl: URL.createObjectURL(file),
     }));
 
-    setSelectedImages((current) => [
-      ...current,
-      ...newImages,
-    ]);
+    setSelectedImages((current) => [...current, ...newImages]);
 
     setError("");
   }
@@ -152,17 +141,13 @@ function ExpertSubmissionPage() {
 
   function removeImage(imageId) {
     setSelectedImages((current) => {
-      const imageToRemove = current.find(
-        (image) => image.id === imageId
-      );
+      const imageToRemove = current.find((image) => image.id === imageId);
 
       if (imageToRemove) {
         URL.revokeObjectURL(imageToRemove.previewUrl);
       }
 
-      return current.filter(
-        (image) => image.id !== imageId
-      );
+      return current.filter((image) => image.id !== imageId);
     });
   }
 
@@ -216,9 +201,7 @@ function ExpertSubmissionPage() {
       maximumSize !== null &&
       maximumSize <= minimumSize
     ) {
-      setError(
-        "يجب أن يكون الحد الأقصى للطول أكبر من الحد الأدنى."
-      );
+      setError("يجب أن يكون الحد الأقصى للطول أكبر من الحد الأدنى.");
       return;
     }
 
@@ -229,49 +212,28 @@ function ExpertSubmissionPage() {
     try {
       const requestData = new FormData();
 
-      requestData.append(
-        "arabic_name",
-        formData.arabic_name.trim()
-      );
+      requestData.append("arabic_name", formData.arabic_name.trim());
 
-      requestData.append(
-        "venom_status",
-        formData.venom_status
-      );
+      requestData.append("venom_status", formData.venom_status);
 
       if (formData.minimum_size_cm) {
-        requestData.append(
-          "minimum_size_cm",
-          formData.minimum_size_cm
-        );
+        requestData.append("minimum_size_cm", formData.minimum_size_cm);
       }
 
       if (formData.maximum_size_cm) {
-        requestData.append(
-          "maximum_size_cm",
-          formData.maximum_size_cm
-        );
+        requestData.append("maximum_size_cm", formData.maximum_size_cm);
       }
 
       if (formData.habitat_notes.trim()) {
-        requestData.append(
-          "habitat_notes",
-          formData.habitat_notes.trim()
-        );
+        requestData.append("habitat_notes", formData.habitat_notes.trim());
       }
 
       if (formData.behavior_notes.trim()) {
-        requestData.append(
-          "behavior_notes",
-          formData.behavior_notes.trim()
-        );
+        requestData.append("behavior_notes", formData.behavior_notes.trim());
       }
 
       if (formData.expert_notes.trim()) {
-        requestData.append(
-          "expert_notes",
-          formData.expert_notes.trim()
-        );
+        requestData.append("expert_notes", formData.expert_notes.trim());
       }
 
       selectedImages.forEach((image) => {
@@ -285,24 +247,20 @@ function ExpertSubmissionPage() {
           headers: {
             Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      const responseData =
-        response.data?.data || response.data;
+      const responseData = response.data?.data || response.data;
 
       setSuccess(responseData);
       resetForm();
     } catch (requestError) {
-      console.error(
-        "Expert submission failed:",
-        requestError
-      );
+      console.error("Expert submission failed:", requestError);
 
       setError(
         requestError.response?.data?.message ||
           requestError.message ||
-          "تعذر إرسال الاقتراح. حاول مرة أخرى."
+          "تعذر إرسال الاقتراح. حاول مرة أخرى.",
       );
     } finally {
       setSubmitting(false);
@@ -317,15 +275,9 @@ function ExpertSubmissionPage() {
 
           <h1>تسجيل الدخول مطلوب</h1>
 
-          <p>
-            يجب تسجيل الدخول بحساب خبير للوصول إلى هذه
-            الصفحة.
-          </p>
+          <p>يجب تسجيل الدخول بحساب خبير للوصول إلى هذه الصفحة.</p>
 
-          <Link
-            className="button button--primary"
-            to="/login"
-          >
+          <Link className="button button--primary" to="/login">
             تسجيل الدخول
           </Link>
         </div>
@@ -341,15 +293,9 @@ function ExpertSubmissionPage() {
 
           <h1>هذه الصفحة مخصصة للخبراء</h1>
 
-          <p>
-            حسابك الحالي لا يمتلك صلاحية إرسال اقتراحات
-            الأنواع.
-          </p>
+          <p>حسابك الحالي لا يمتلك صلاحية إرسال اقتراحات الأنواع.</p>
 
-          <Link
-            className="button button--primary"
-            to="/"
-          >
+          <Link className="button button--primary" to="/">
             <ArrowRight size={18} />
             العودة إلى الرئيسية
           </Link>
@@ -371,8 +317,8 @@ function ExpertSubmissionPage() {
             <h1>اقتراح أفعى جديدة</h1>
 
             <p>
-              أرسل الاسم العربي وصورًا واضحة، وسيقوم مدير
-              المحتوى بمراجعة المعلومات واستكمالها قبل النشر.
+              أرسل الاسم العربي وصورًا واضحة، وسيقوم مدير المحتوى بمراجعة
+              المعلومات واستكمالها قبل النشر.
             </p>
           </div>
 
@@ -383,10 +329,7 @@ function ExpertSubmissionPage() {
       </section>
 
       <section className="page-container expert-form-layout">
-        <form
-          className="expert-submission-form"
-          onSubmit={handleSubmit}
-        >
+        <form className="expert-submission-form" onSubmit={handleSubmit}>
           <div className="expert-form-heading">
             <div>
               <span>1</span>
@@ -394,10 +337,7 @@ function ExpertSubmissionPage() {
 
             <div>
               <h2>المعلومات الأساسية</h2>
-              <p>
-                الاسم العربي والصور مطلوبان، وبقية الحقول
-                اختيارية.
-              </p>
+              <p>الاسم العربي والصور مطلوبان، وبقية الحقول اختيارية.</p>
             </div>
           </div>
 
@@ -428,16 +368,10 @@ function ExpertSubmissionPage() {
                 disabled={submitting}
                 onChange={handleChange}
               >
-                <option value="UNKNOWN">
-                  غير معروفة
-                </option>
+                <option value="UNKNOWN">غير معروفة</option>
                 <option value="VENOMOUS">سامة</option>
-                <option value="MILDLY_VENOMOUS">
-                  سامة بدرجة خفيفة
-                </option>
-                <option value="NON_VENOMOUS">
-                  غير سامة
-                </option>
+                <option value="MILDLY_VENOMOUS">سامة بدرجة خفيفة</option>
+                <option value="NON_VENOMOUS">غير سامة</option>
               </select>
             </label>
 
@@ -521,21 +455,14 @@ function ExpertSubmissionPage() {
 
             <div>
               <h2>صور الأفعى</h2>
-              <p>
-                ارفع من صورة واحدة إلى خمس صور واضحة.
-              </p>
+              <p>ارفع من صورة واحدة إلى خمس صور واضحة.</p>
             </div>
           </div>
 
           <button
             type="button"
-            className={`expert-image-dropzone ${
-              dragActive ? "is-active" : ""
-            }`}
-            disabled={
-              submitting ||
-              selectedImages.length >= MAX_IMAGES
-            }
+            className={`expert-image-dropzone ${dragActive ? "is-active" : ""}`}
+            disabled={submitting || selectedImages.length >= MAX_IMAGES}
             onClick={() => inputRef.current?.click()}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -543,13 +470,9 @@ function ExpertSubmissionPage() {
           >
             <UploadCloud size={38} />
 
-            <strong>
-              اسحب الصور إلى هنا أو اضغط لاختيارها
-            </strong>
+            <strong>اسحب الصور إلى هنا أو اضغط لاختيارها</strong>
 
-            <span>
-              JPEG أو PNG أو WebP — بحد أقصى 8 MB للصورة
-            </span>
+            <span>JPEG أو PNG أو WebP — بحد أقصى 8 MB للصورة</span>
 
             <small>
               {selectedImages.length}/{MAX_IMAGES} صور
@@ -568,10 +491,7 @@ function ExpertSubmissionPage() {
           {selectedImages.length > 0 && (
             <div className="expert-images-preview">
               {selectedImages.map((image, index) => (
-                <article
-                  key={image.id}
-                  className="expert-image-preview"
-                >
+                <article key={image.id} className="expert-image-preview">
                   <img
                     src={image.previewUrl}
                     alt={`صورة الاقتراح ${index + 1}`}
@@ -583,9 +503,7 @@ function ExpertSubmissionPage() {
                     type="button"
                     title="حذف الصورة"
                     disabled={submitting}
-                    onClick={() =>
-                      removeImage(image.id)
-                    }
+                    onClick={() => removeImage(image.id)}
                   >
                     <Trash2 size={17} />
                   </button>
@@ -597,9 +515,7 @@ function ExpertSubmissionPage() {
                   type="button"
                   className="expert-add-image"
                   disabled={submitting}
-                  onClick={() =>
-                    inputRef.current?.click()
-                  }
+                  onClick={() => inputRef.current?.click()}
                 >
                   <ImagePlus size={25} />
                   إضافة صورة
@@ -623,9 +539,7 @@ function ExpertSubmissionPage() {
                 <strong>تم إرسال الاقتراح بنجاح</strong>
                 <p>
                   رقم الاقتراح:{" "}
-                  {success.submission?.id ||
-                    success.id ||
-                    "تم الحفظ"}
+                  {success.submission?.id || success.id || "تم الحفظ"}
                 </p>
               </div>
             </div>
@@ -638,10 +552,7 @@ function ExpertSubmissionPage() {
           >
             {submitting ? (
               <>
-                <LoaderCircle
-                  className="spinning-icon"
-                  size={20}
-                />
+                <LoaderCircle className="spinning-icon" size={20} />
                 جاري رفع الصور وإرسال الاقتراح...
               </>
             ) : (
@@ -663,34 +574,22 @@ function ExpertSubmissionPage() {
           <div className="expert-guidelines">
             <div>
               <CheckCircle2 size={18} />
-              <p>
-                استخدم الاسم العربي المعروف للنوع قدر
-                الإمكان.
-              </p>
+              <p>استخدم الاسم العربي المعروف للنوع قدر الإمكان.</p>
             </div>
 
             <div>
               <CheckCircle2 size={18} />
-              <p>
-                اختر صورًا واضحة تُظهر الرأس والجسم
-                والنقوش.
-              </p>
+              <p>اختر صورًا واضحة تُظهر الرأس والجسم والنقوش.</p>
             </div>
 
             <div>
               <CheckCircle2 size={18} />
-              <p>
-                اذكر المعلومات التي تعرفها فقط، واترك غير
-                المؤكد فارغًا.
-              </p>
+              <p>اذكر المعلومات التي تعرفها فقط، واترك غير المؤكد فارغًا.</p>
             </div>
 
             <div>
               <CheckCircle2 size={18} />
-              <p>
-                لن يظهر الاقتراح للعامة قبل مراجعته
-                واعتماده.
-              </p>
+              <p>لن يظهر الاقتراح للعامة قبل مراجعته واعتماده.</p>
             </div>
           </div>
 

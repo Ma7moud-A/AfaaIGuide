@@ -14,6 +14,11 @@ import {
   XCircle,
 } from "lucide-react";
 
+import {
+  API_URL,
+  getUploadUrl,
+} from "../config/api";
+
 function getDangerInfo(dangerLevel) {
   switch (dangerLevel) {
     case "CRITICAL":
@@ -90,7 +95,7 @@ function getSpeciesImages(snake) {
 
       return {
         ...image,
-        url: `http://localhost:3000/uploads/${storageKey}`,
+        url: getUploadUrl(storageKey),
       };
     })
     .filter(Boolean);
@@ -107,7 +112,7 @@ function getPrimarySpeciesImage(snake) {
     getMediaStorageKey(directImage);
 
   if (directStorageKey) {
-    return `http://localhost:3000/uploads/${directStorageKey}`;
+    return getUploadUrl(storageKey);
   }
 
   const images = getSpeciesImages(snake);
@@ -138,7 +143,7 @@ function SpeciesDetailsPage() {
     async function loadSpeciesDetails() {
       try {
         const response = await axios.get(
-          `http://localhost:3000/api/species/${id}`
+          `${API_URL}/species/${id}`
         );
 
         if (!requestCancelled) {

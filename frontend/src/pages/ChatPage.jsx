@@ -11,8 +11,7 @@ import {
   User,
 } from "lucide-react";
 
-const API_URL = "http://localhost:3000/api";
-
+import { API_URL } from "../config/api";
 function ChatPage() {
   const messagesEndRef = useRef(null);
 

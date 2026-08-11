@@ -14,7 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 
-const API_URL = "http://localhost:3000/api";
+import { API_URL } from "../config/api";
 
 function getStoredUser() {
   try {
@@ -99,7 +99,7 @@ function ContentSubmissionsPage() {
 
   const isContentAdmin = useMemo(() => {
     return user?.roles?.some((role) =>
-      ["CONTENT_ADMIN", "ADMIN"].includes(role)
+      ["CONTENT_ADMIN", "ADMIN"].includes(role),
     );
   }, [user]);
 
@@ -121,10 +121,7 @@ function ContentSubmissionsPage() {
       setError("");
 
       try {
-        const query =
-          statusFilter === "ALL"
-            ? ""
-            : `?status=${statusFilter}`;
+        const query = statusFilter === "ALL" ? "" : `?status=${statusFilter}`;
 
         const response = await axios.get(
           `${API_URL}/content/submissions${query}`,
@@ -132,28 +129,23 @@ function ContentSubmissionsPage() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
-          }
+          },
         );
 
         if (!requestCancelled) {
           setSubmissions(
-            Array.isArray(
-              response.data?.data?.submissions
-            )
+            Array.isArray(response.data?.data?.submissions)
               ? response.data.data.submissions
-              : []
+              : [],
           );
         }
       } catch (requestError) {
-        console.error(
-          "Failed to load content submissions:",
-          requestError
-        );
+        console.error("Failed to load content submissions:", requestError);
 
         if (!requestCancelled) {
           setError(
             requestError.response?.data?.message ||
-              "تعذر تحميل اقتراحات الخبراء."
+              "تعذر تحميل اقتراحات الخبراء.",
           );
         }
       } finally {
@@ -178,15 +170,9 @@ function ContentSubmissionsPage() {
 
           <h1>تسجيل الدخول مطلوب</h1>
 
-          <p>
-            يجب تسجيل الدخول بحساب مدير محتوى للوصول إلى
-            هذه الصفحة.
-          </p>
+          <p>يجب تسجيل الدخول بحساب مدير محتوى للوصول إلى هذه الصفحة.</p>
 
-          <Link
-            className="button button--primary"
-            to="/login"
-          >
+          <Link className="button button--primary" to="/login">
             تسجيل الدخول
           </Link>
         </div>
@@ -202,14 +188,9 @@ function ContentSubmissionsPage() {
 
           <h1>غير مصرح لك بالدخول</h1>
 
-          <p>
-            هذه الصفحة مخصصة لمدير المحتوى أو مدير النظام.
-          </p>
+          <p>هذه الصفحة مخصصة لمدير المحتوى أو مدير النظام.</p>
 
-          <Link
-            className="button button--primary"
-            to="/"
-          >
+          <Link className="button button--primary" to="/">
             العودة إلى الرئيسية
           </Link>
         </div>
@@ -230,8 +211,8 @@ function ContentSubmissionsPage() {
             <h1>مراجعة اقتراحات الخبراء</h1>
 
             <p>
-              راجع البيانات والصور، ثم اقبل الاقتراح أو
-              ارفضه مع إضافة ملاحظات واضحة.
+              راجع البيانات والصور، ثم اقبل الاقتراح أو ارفضه مع إضافة ملاحظات
+              واضحة.
             </p>
           </div>
 
@@ -247,45 +228,29 @@ function ContentSubmissionsPage() {
             <h2>الاقتراحات</h2>
 
             <p>
-              عدد النتائج الحالية:{" "}
-              <strong>{submissions.length}</strong>
+              عدد النتائج الحالية: <strong>{submissions.length}</strong>
             </p>
           </div>
 
           <select
             value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value)
-            }
+            onChange={(event) => setStatusFilter(event.target.value)}
           >
-            <option value="ALL">
-              جميع الحالات
-            </option>
+            <option value="ALL">جميع الحالات</option>
 
-            <option value="SUBMITTED">
-              بانتظار المراجعة
-            </option>
+            <option value="SUBMITTED">بانتظار المراجعة</option>
 
-            <option value="UNDER_REVIEW">
-              قيد المراجعة
-            </option>
+            <option value="UNDER_REVIEW">قيد المراجعة</option>
 
-            <option value="APPROVED">
-              مقبولة
-            </option>
+            <option value="APPROVED">مقبولة</option>
 
-            <option value="REJECTED">
-              مرفوضة
-            </option>
+            <option value="REJECTED">مرفوضة</option>
           </select>
         </div>
 
         {loading && (
           <div className="content-submissions-state">
-            <LoaderCircle
-              className="spinning-icon"
-              size={38}
-            />
+            <LoaderCircle className="spinning-icon" size={38} />
 
             <p>جاري تحميل الاقتراحات...</p>
           </div>
@@ -301,129 +266,106 @@ function ContentSubmissionsPage() {
           </div>
         )}
 
-        {!loading &&
-          !error &&
-          submissions.length === 0 && (
-            <div className="content-submissions-state">
-              <FileSearch size={40} />
+        {!loading && !error && submissions.length === 0 && (
+          <div className="content-submissions-state">
+            <FileSearch size={40} />
 
-              <h2>لا توجد اقتراحات</h2>
+            <h2>لا توجد اقتراحات</h2>
 
-              <p>
-                لا توجد اقتراحات مطابقة للحالة المختارة.
-              </p>
-            </div>
-          )}
+            <p>لا توجد اقتراحات مطابقة للحالة المختارة.</p>
+          </div>
+        )}
 
-        {!loading &&
-          !error &&
-          submissions.length > 0 && (
-            <div className="content-submissions-grid">
-              {submissions.map((submission) => {
-                const statusInfo = getStatusInfo(
-                  submission.status
-                );
+        {!loading && !error && submissions.length > 0 && (
+          <div className="content-submissions-grid">
+            {submissions.map((submission) => {
+              const statusInfo = getStatusInfo(submission.status);
 
-                const StatusIcon = statusInfo.icon;
+              const StatusIcon = statusInfo.icon;
 
-                const primaryImage =
-                  submission.images?.find(
-                    (image) => image.is_primary
-                  ) || submission.images?.[0];
+              const primaryImage =
+                submission.images?.find((image) => image.is_primary) ||
+                submission.images?.[0];
 
-                const submitter =
-                  submission.submitted_by_user;
+              const submitter = submission.submitted_by_user;
 
-                return (
-                  <article
-                    key={submission.id}
-                    className="content-submission-card"
-                  >
-                    <div className="content-submission-card__image">
-                      <div className="content-submission-card__placeholder">
-                        <ImageIcon size={42} />
+              return (
+                <article
+                  key={submission.id}
+                  className="content-submission-card"
+                >
+                  <div className="content-submission-card__image">
+                    <div className="content-submission-card__placeholder">
+                      <ImageIcon size={42} />
 
-                        <span>
-                          {primaryImage?.media_asset
-                            ?.original_filename ||
-                            "لا توجد صورة"}
-                        </span>
-                      </div>
-
-                      <span
-                        className={`expert-status-badge ${statusInfo.className}`}
-                      >
-                        <StatusIcon size={15} />
-                        {statusInfo.label}
+                      <span>
+                        {primaryImage?.media_asset?.original_filename ||
+                          "لا توجد صورة"}
                       </span>
                     </div>
 
-                    <div className="content-submission-card__body">
-                      <div className="content-submission-card__heading">
-                        <div>
-                          <h2>
-                            {submission.arabic_name}
-                          </h2>
+                    <span
+                      className={`expert-status-badge ${statusInfo.className}`}
+                    >
+                      <StatusIcon size={15} />
+                      {statusInfo.label}
+                    </span>
+                  </div>
 
-                          <p>
-                            اقتراح رقم #{submission.id}
-                          </p>
-                        </div>
+                  <div className="content-submission-card__body">
+                    <div className="content-submission-card__heading">
+                      <div>
+                        <h2>{submission.arabic_name}</h2>
 
-                        <span>
-                          {submission.images?.length || 0} صور
-                        </span>
+                        <p>اقتراح رقم #{submission.id}</p>
                       </div>
 
-                      <div className="content-submission-card__submitter">
-                        <UserRound size={18} />
-
-                        <div>
-                          <span>أرسل بواسطة</span>
-
-                          <strong>
-                            {submitter?.username ||
-                              submitter?.email ||
-                              "مستخدم غير معروف"}
-                          </strong>
-                        </div>
-                      </div>
-
-                      <div className="content-submission-card__meta">
-                        <div>
-                          <span>السمّية</span>
-
-                          <strong>
-                            {getVenomLabel(
-                              submission.venom_status
-                            )}
-                          </strong>
-                        </div>
-
-                        <div>
-                          <span>تاريخ الإرسال</span>
-
-                          <strong>
-                            {formatDate(
-                              submission.created_at
-                            )}
-                          </strong>
-                        </div>
-                      </div>
-
-                      <Link
-                        className="content-submission-card__button"
-                        to={`/content/submissions/${submission.id}`}
-                      >
-                        <Eye size={18} />
-                        فتح الاقتراح ومراجعته
-                      </Link>
+                      <span>{submission.images?.length || 0} صور</span>
                     </div>
-                  </article>
-                );
-              })}
-            </div>
-          )}
+
+                    <div className="content-submission-card__submitter">
+                      <UserRound size={18} />
+
+                      <div>
+                        <span>أرسل بواسطة</span>
+
+                        <strong>
+                          {submitter?.username ||
+                            submitter?.email ||
+                            "مستخدم غير معروف"}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="content-submission-card__meta">
+                      <div>
+                        <span>السمّية</span>
+
+                        <strong>
+                          {getVenomLabel(submission.venom_status)}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>تاريخ الإرسال</span>
+
+                        <strong>{formatDate(submission.created_at)}</strong>
+                      </div>
+                    </div>
+
+                    <Link
+                      className="content-submission-card__button"
+                      to={`/content/submissions/${submission.id}`}
+                    >
+                      <Eye size={18} />
+                      فتح الاقتراح ومراجعته
+                    </Link>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
     </main>
   );

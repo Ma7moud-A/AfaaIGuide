@@ -18,8 +18,7 @@ import {
   UserRound,
   XCircle,
 } from "lucide-react";
-
-const API_URL = "http://localhost:3000/api";
+import { API_URL, BACKEND_URL } from "../config/api";
 
 function getStoredUser() {
   try {
@@ -506,7 +505,7 @@ function ContentSubmissionReviewPage() {
               {selectedImage ? (
                 <img
                   className="content-review-real-image"
-                  src={`http://localhost:3000/uploads/${selectedImage.media_asset?.storage_key}`}
+                  src={`${BACKEND_URL}/uploads/${selectedImage.media_asset?.storage_key}`}
                   alt={submission.arabic_name}
                 />
               ) : (
@@ -527,7 +526,7 @@ function ContentSubmissionReviewPage() {
                     onClick={() => setSelectedImageIndex(index)}
                   >
                     <img
-                      src={`http://localhost:3000/uploads/${image.media_asset?.storage_key}`}
+                      src={`${BACKEND_URL}/uploads/${selectedImage.media_asset?.storage_key}`}
                       alt={`${submission.arabic_name} ${index + 1}`}
                     />
                   </button>

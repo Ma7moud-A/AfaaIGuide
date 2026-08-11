@@ -12,39 +12,26 @@ import {
   ShieldCheck,
   Trash2,
 } from "lucide-react";
-import {
-  Link,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-const API_URL = "http://localhost:3000/api";
-const BACKEND_URL = "http://localhost:3000";
+import { API_URL, BACKEND_URL } from "../config/api";
 
 function getStoredUser() {
   try {
-    const storedUser =
-      localStorage.getItem("afaai_user");
+    const storedUser = localStorage.getItem("afaai_user");
 
-    return storedUser
-      ? JSON.parse(storedUser)
-      : null;
+    return storedUser ? JSON.parse(storedUser) : null;
   } catch {
     return null;
   }
 }
 
 function getImageStorageKey(image) {
-  return (
-    image?.storage_key ||
-    image?.media_asset?.storage_key ||
-    ""
-  );
+  return image?.storage_key || image?.media_asset?.storage_key || "";
 }
 
 function getImageUrl(image) {
-  const storageKey =
-    getImageStorageKey(image);
+  const storageKey = getImageStorageKey(image);
 
   if (!storageKey) {
     return "";
@@ -61,31 +48,18 @@ function normalizeImage(image) {
   return {
     ...image,
 
-    storage_key:
-      getImageStorageKey(image),
+    storage_key: getImageStorageKey(image),
 
     original_filename:
-      image.original_filename ||
-      image.media_asset?.original_filename ||
-      "",
+      image.original_filename || image.media_asset?.original_filename || "",
 
-    mime_type:
-      image.mime_type ||
-      image.media_asset?.mime_type ||
-      "",
+    mime_type: image.mime_type || image.media_asset?.mime_type || "",
 
-    width:
-      image.width ||
-      image.media_asset?.width ||
-      null,
+    width: image.width || image.media_asset?.width || null,
 
-    height:
-      image.height ||
-      image.media_asset?.height ||
-      null,
+    height: image.height || image.media_asset?.height || null,
 
-    is_primary:
-      Boolean(image.is_primary),
+    is_primary: Boolean(image.is_primary),
   };
 }
 
@@ -96,155 +70,106 @@ function ContentSpeciesEditPage() {
   const fileInputRef = useRef(null);
 
   const user = getStoredUser();
-  const token =
-    localStorage.getItem("afaai_token");
+  const token = localStorage.getItem("afaai_token");
 
-  const isContentAdmin =
-    useMemo(() => {
-      return user?.roles?.some(
-        (role) =>
-          [
-            "CONTENT_ADMIN",
-            "ADMIN",
-          ].includes(role)
-      );
-    }, [user]);
+  const isContentAdmin = useMemo(() => {
+    return user?.roles?.some((role) =>
+      ["CONTENT_ADMIN", "ADMIN"].includes(role),
+    );
+  }, [user]);
 
-  const [formData, setFormData] =
-    useState({
-      animal_group_id: "",
-      arabic_name: "",
-      english_name: "",
-      scientific_name: "",
-      description: "",
-      venom_status: "UNKNOWN",
-      danger_level: "UNKNOWN",
-      minimum_size_cm: "",
-      maximum_size_cm: "",
-      behavior: "",
-      what_to_do: "",
-      what_not_to_do: "",
-    });
+  const [formData, setFormData] = useState({
+    animal_group_id: "",
+    arabic_name: "",
+    english_name: "",
+    scientific_name: "",
+    description: "",
+    venom_status: "UNKNOWN",
+    danger_level: "UNKNOWN",
+    minimum_size_cm: "",
+    maximum_size_cm: "",
+    behavior: "",
+    what_to_do: "",
+    what_not_to_do: "",
+  });
 
-  const [images, setImages] =
-    useState([]);
+  const [images, setImages] = useState([]);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [loading, setLoading] = useState(true);
 
-  const [saving, setSaving] =
-    useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const [uploadingImage, setUploadingImage] =
-    useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
-  const [deletingImageId, setDeletingImageId] =
-    useState(null);
+  const [deletingImageId, setDeletingImageId] = useState(null);
 
-  const [settingPrimaryId, setSettingPrimaryId] =
-    useState(null);
+  const [settingPrimaryId, setSettingPrimaryId] = useState(null);
 
-  const [error, setError] =
-    useState("");
+  const [error, setError] = useState("");
 
-  const [success, setSuccess] =
-    useState("");
+  const [success, setSuccess] = useState("");
 
   useEffect(() => {
     let requestCancelled = false;
 
     async function loadSpecies() {
-      if (
-        !token ||
-        !isContentAdmin
-      ) {
+      if (!token || !isContentAdmin) {
         setLoading(false);
         return;
       }
 
       try {
-        const response =
-          await axios.get(
-            `${API_URL}/species/${id}`
-          );
+        const response = await axios.get(`${API_URL}/species/${id}`);
 
         if (requestCancelled) {
           return;
         }
 
-        const snake =
-          response.data?.data;
+        const snake = response.data?.data;
 
         if (!snake) {
-          setError(
-            "لم يتم العثور على النوع."
-          );
+          setError("لم يتم العثور على النوع.");
 
           return;
         }
 
         setFormData({
-          animal_group_id:
-            snake.animal_group_id ?? "",
+          animal_group_id: snake.animal_group_id ?? "",
 
-          arabic_name:
-            snake.arabic_name ?? "",
+          arabic_name: snake.arabic_name ?? "",
 
-          english_name:
-            snake.english_name ?? "",
+          english_name: snake.english_name ?? "",
 
-          scientific_name:
-            snake.scientific_name ?? "",
+          scientific_name: snake.scientific_name ?? "",
 
-          description:
-            snake.description ?? "",
+          description: snake.description ?? "",
 
-          venom_status:
-            snake.venom_status ??
-            "UNKNOWN",
+          venom_status: snake.venom_status ?? "UNKNOWN",
 
-          danger_level:
-            snake.danger_level ??
-            "UNKNOWN",
+          danger_level: snake.danger_level ?? "UNKNOWN",
 
-          minimum_size_cm:
-            snake.minimum_size_cm ??
-            "",
+          minimum_size_cm: snake.minimum_size_cm ?? "",
 
-          maximum_size_cm:
-            snake.maximum_size_cm ??
-            "",
+          maximum_size_cm: snake.maximum_size_cm ?? "",
 
-          behavior:
-            snake.behavior ?? "",
+          behavior: snake.behavior ?? "",
 
-          what_to_do:
-            snake.what_to_do ?? "",
+          what_to_do: snake.what_to_do ?? "",
 
-          what_not_to_do:
-            snake.what_not_to_do ??
-            "",
+          what_not_to_do: snake.what_not_to_do ?? "",
         });
 
-        const loadedImages =
-          Array.isArray(snake.images)
-            ? snake.images
-                .map(normalizeImage)
-                .filter(Boolean)
-            : [];
+        const loadedImages = Array.isArray(snake.images)
+          ? snake.images.map(normalizeImage).filter(Boolean)
+          : [];
 
         setImages(loadedImages);
       } catch (requestError) {
-        console.error(
-          "Failed to load species:",
-          requestError
-        );
+        console.error("Failed to load species:", requestError);
 
         if (!requestCancelled) {
           setError(
-            requestError.response
-              ?.data?.message ||
-              "تعذر تحميل بيانات النوع."
+            requestError.response?.data?.message || "تعذر تحميل بيانات النوع.",
           );
         }
       } finally {
@@ -259,17 +184,10 @@ function ContentSpeciesEditPage() {
     return () => {
       requestCancelled = true;
     };
-  }, [
-    id,
-    token,
-    isContentAdmin,
-  ]);
+  }, [id, token, isContentAdmin]);
 
   function handleChange(event) {
-    const {
-      name,
-      value,
-    } = event.target;
+    const { name, value } = event.target;
 
     setFormData((current) => ({
       ...current,
@@ -285,11 +203,8 @@ function ContentSpeciesEditPage() {
     }
   }
 
-  async function handleImageUpload(
-    event
-  ) {
-    const file =
-      event.target.files?.[0];
+  async function handleImageUpload(event) {
+    const file = event.target.files?.[0];
 
     event.target.value = "";
 
@@ -297,31 +212,16 @@ function ContentSpeciesEditPage() {
       return;
     }
 
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-    ];
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
 
-    if (
-      !allowedTypes.includes(
-        file.type
-      )
-    ) {
-      setError(
-        "يسمح فقط بصور JPEG أو PNG أو WebP."
-      );
+    if (!allowedTypes.includes(file.type)) {
+      setError("يسمح فقط بصور JPEG أو PNG أو WebP.");
 
       return;
     }
 
-    if (
-      file.size >
-      8 * 1024 * 1024
-    ) {
-      setError(
-        "حجم الصورة يجب ألا يتجاوز 8 MB."
-      );
+    if (file.size > 8 * 1024 * 1024) {
+      setError("حجم الصورة يجب ألا يتجاوز 8 MB.");
 
       return;
     }
@@ -331,63 +231,37 @@ function ContentSpeciesEditPage() {
       setError("");
       setSuccess("");
 
-      const body =
-        new FormData();
+      const body = new FormData();
 
-      body.append(
-        "image",
-        file
+      body.append("image", file);
+
+      const response = await axios.post(
+        `${API_URL}/species/${id}/images`,
+        body,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
       );
 
-      const response =
-        await axios.post(
-          `${API_URL}/species/${id}/images`,
-          body,
-          {
-            headers: {
-              Authorization:
-                `Bearer ${token}`,
-            },
-          }
-        );
-
-      const createdImage =
-        normalizeImage(
-          response.data?.data
-            ?.image
-        );
+      const createdImage = normalizeImage(response.data?.data?.image);
 
       if (createdImage) {
-        setImages(
-          (currentImages) => [
-            ...currentImages,
-            createdImage,
-          ]
-        );
+        setImages((currentImages) => [...currentImages, createdImage]);
       }
 
-      setSuccess(
-        "تمت إضافة الصورة بنجاح."
-      );
+      setSuccess("تمت إضافة الصورة بنجاح.");
     } catch (requestError) {
-      console.error(
-        "Failed to upload species image:",
-        requestError
-      );
+      console.error("Failed to upload species image:", requestError);
 
-      setError(
-        requestError.response
-          ?.data?.message ||
-          "تعذر إضافة الصورة."
-      );
+      setError(requestError.response?.data?.message || "تعذر إضافة الصورة.");
     } finally {
       setUploadingImage(false);
     }
   }
 
-  async function handleSetPrimaryImage(
-    image
-  ) {
+  async function handleSetPrimaryImage(image) {
     if (
       image.is_primary ||
       settingPrimaryId ||
@@ -398,9 +272,7 @@ function ContentSpeciesEditPage() {
     }
 
     try {
-      setSettingPrimaryId(
-        image.id
-      );
+      setSettingPrimaryId(image.id);
 
       setError("");
       setSuccess("");
@@ -410,144 +282,89 @@ function ContentSpeciesEditPage() {
         {},
         {
           headers: {
-            Authorization:
-              `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      setImages(
-        (currentImages) =>
-          currentImages.map(
-            (currentImage) => ({
-              ...currentImage,
+      setImages((currentImages) =>
+        currentImages.map((currentImage) => ({
+          ...currentImage,
 
-              is_primary:
-                currentImage.id ===
-                image.id,
-            })
-          )
+          is_primary: currentImage.id === image.id,
+        })),
       );
 
-      setSuccess(
-        "تم تغيير الصورة الرئيسية بنجاح."
-      );
+      setSuccess("تم تغيير الصورة الرئيسية بنجاح.");
     } catch (requestError) {
-      console.error(
-        "Failed to set primary image:",
-        requestError
-      );
+      console.error("Failed to set primary image:", requestError);
 
       setError(
-        requestError.response
-          ?.data?.message ||
-          "تعذر تغيير الصورة الرئيسية."
+        requestError.response?.data?.message || "تعذر تغيير الصورة الرئيسية.",
       );
     } finally {
-      setSettingPrimaryId(
-        null
-      );
+      setSettingPrimaryId(null);
     }
   }
 
-  async function handleDeleteImage(
-    image
-  ) {
-    if (
-      deletingImageId ||
-      settingPrimaryId ||
-      uploadingImage
-    ) {
+  async function handleDeleteImage(image) {
+    if (deletingImageId || settingPrimaryId || uploadingImage) {
       return;
     }
 
-    const confirmed =
-      window.confirm(
-        image.is_primary
-          ? "هذه هي الصورة الرئيسية حاليًا. هل تريد حذفها؟ سيتم اختيار صورة أخرى كرئيسية تلقائيًا إذا كانت موجودة."
-          : "هل أنت متأكد من حذف هذه الصورة من النوع؟"
-      );
+    const confirmed = window.confirm(
+      image.is_primary
+        ? "هذه هي الصورة الرئيسية حاليًا. هل تريد حذفها؟ سيتم اختيار صورة أخرى كرئيسية تلقائيًا إذا كانت موجودة."
+        : "هل أنت متأكد من حذف هذه الصورة من النوع؟",
+    );
 
     if (!confirmed) {
       return;
     }
 
     try {
-      setDeletingImageId(
-        image.id
-      );
+      setDeletingImageId(image.id);
 
       setError("");
       setSuccess("");
 
-      await axios.delete(
-        `${API_URL}/species/${id}/images/${image.id}`,
-        {
-          headers: {
-            Authorization:
-              `Bearer ${token}`,
-          },
+      await axios.delete(`${API_URL}/species/${id}/images/${image.id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setImages((currentImages) => {
+        const remaining = currentImages.filter(
+          (currentImage) => currentImage.id !== image.id,
+        );
+
+        if (
+          image.is_primary &&
+          remaining.length > 0 &&
+          !remaining.some((currentImage) => currentImage.is_primary)
+        ) {
+          return remaining.map((currentImage, index) => ({
+            ...currentImage,
+
+            is_primary: index === 0,
+          }));
         }
-      );
 
-      setImages(
-        (currentImages) => {
-          const remaining =
-            currentImages.filter(
-              (currentImage) =>
-                currentImage.id !==
-                image.id
-            );
+        return remaining;
+      });
 
-          if (
-            image.is_primary &&
-            remaining.length > 0 &&
-            !remaining.some(
-              (currentImage) =>
-                currentImage.is_primary
-            )
-          ) {
-            return remaining.map(
-              (
-                currentImage,
-                index
-              ) => ({
-                ...currentImage,
-
-                is_primary:
-                  index === 0,
-              })
-            );
-          }
-
-          return remaining;
-        }
-      );
-
-      setSuccess(
-        "تم حذف الصورة من النوع بنجاح."
-      );
+      setSuccess("تم حذف الصورة من النوع بنجاح.");
     } catch (requestError) {
-      console.error(
-        "Failed to delete species image:",
-        requestError
-      );
+      console.error("Failed to delete species image:", requestError);
 
-      setError(
-        requestError.response
-          ?.data?.message ||
-          "تعذر حذف الصورة."
-      );
+      setError(requestError.response?.data?.message || "تعذر حذف الصورة.");
     } finally {
-      setDeletingImageId(
-        null
-      );
+      setDeletingImageId(null);
     }
   }
 
-  async function handleSubmit(
-    event
-  ) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     if (saving) {
@@ -564,54 +381,34 @@ function ContentSpeciesEditPage() {
       "what_not_to_do",
     ];
 
-    const missingField =
-      requiredFields.some(
-        (field) =>
-          !formData[field].trim()
-      );
+    const missingField = requiredFields.some(
+      (field) => !formData[field].trim(),
+    );
 
     if (missingField) {
-      setError(
-        "يجب تعبئة جميع الحقول المطلوبة."
-      );
+      setError("يجب تعبئة جميع الحقول المطلوبة.");
 
       return;
     }
 
-    if (
-      !formData.animal_group_id
-    ) {
-      setError(
-        "مجموعة الحيوان غير موجودة."
-      );
+    if (!formData.animal_group_id) {
+      setError("مجموعة الحيوان غير موجودة.");
 
       return;
     }
 
     const minimumSize =
-      formData.minimum_size_cm ===
-      ""
-        ? null
-        : Number(
-            formData.minimum_size_cm
-          );
+      formData.minimum_size_cm === "" ? null : Number(formData.minimum_size_cm);
 
     const maximumSize =
-      formData.maximum_size_cm ===
-      ""
-        ? null
-        : Number(
-            formData.maximum_size_cm
-          );
+      formData.maximum_size_cm === "" ? null : Number(formData.maximum_size_cm);
 
     if (
       minimumSize !== null &&
       maximumSize !== null &&
       maximumSize <= minimumSize
     ) {
-      setError(
-        "يجب أن يكون الحد الأقصى للطول أكبر من الحد الأدنى."
-      );
+      setError("يجب أن يكون الحد الأقصى للطول أكبر من الحد الأدنى.");
 
       return;
     }
@@ -624,72 +421,46 @@ function ContentSpeciesEditPage() {
       await axios.put(
         `${API_URL}/species/${id}`,
         {
-          animal_group_id:
-            Number(
-              formData.animal_group_id
-            ),
+          animal_group_id: Number(formData.animal_group_id),
 
-          arabic_name:
-            formData.arabic_name.trim(),
+          arabic_name: formData.arabic_name.trim(),
 
-          english_name:
-            formData.english_name.trim(),
+          english_name: formData.english_name.trim(),
 
-          scientific_name:
-            formData.scientific_name.trim(),
+          scientific_name: formData.scientific_name.trim(),
 
-          description:
-            formData.description.trim(),
+          description: formData.description.trim(),
 
-          venom_status:
-            formData.venom_status,
+          venom_status: formData.venom_status,
 
-          danger_level:
-            formData.danger_level,
+          danger_level: formData.danger_level,
 
-          minimum_size_cm:
-            minimumSize,
+          minimum_size_cm: minimumSize,
 
-          maximum_size_cm:
-            maximumSize,
+          maximum_size_cm: maximumSize,
 
-          behavior:
-            formData.behavior.trim(),
+          behavior: formData.behavior.trim(),
 
-          what_to_do:
-            formData.what_to_do.trim(),
+          what_to_do: formData.what_to_do.trim(),
 
-          what_not_to_do:
-            formData.what_not_to_do.trim(),
+          what_not_to_do: formData.what_not_to_do.trim(),
         },
         {
           headers: {
-            Authorization:
-              `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
           },
-        }
+        },
       );
 
-      setSuccess(
-        "تم حفظ تعديلات النوع بنجاح."
-      );
+      setSuccess("تم حفظ تعديلات النوع بنجاح.");
 
       setTimeout(() => {
-        navigate(
-          "/content/species"
-        );
+        navigate("/content/species");
       }, 1000);
     } catch (requestError) {
-      console.error(
-        "Failed to update species:",
-        requestError
-      );
+      console.error("Failed to update species:", requestError);
 
-      setError(
-        requestError.response
-          ?.data?.message ||
-          "تعذر حفظ التعديلات."
-      );
+      setError(requestError.response?.data?.message || "تعذر حفظ التعديلات.");
     } finally {
       setSaving(false);
     }
@@ -699,23 +470,13 @@ function ContentSpeciesEditPage() {
     return (
       <main className="protected-state-page">
         <div className="protected-state-card">
-          <ShieldCheck
-            size={45}
-          />
+          <ShieldCheck size={45} />
 
-          <h1>
-            تسجيل الدخول مطلوب
-          </h1>
+          <h1>تسجيل الدخول مطلوب</h1>
 
-          <p>
-            يجب تسجيل الدخول
-            بحساب مدير محتوى.
-          </p>
+          <p>يجب تسجيل الدخول بحساب مدير محتوى.</p>
 
-          <Link
-            className="button button--primary"
-            to="/login"
-          >
+          <Link className="button button--primary" to="/login">
             تسجيل الدخول
           </Link>
         </div>
@@ -727,24 +488,13 @@ function ContentSpeciesEditPage() {
     return (
       <main className="protected-state-page">
         <div className="protected-state-card">
-          <ShieldCheck
-            size={45}
-          />
+          <ShieldCheck size={45} />
 
-          <h1>
-            غير مصرح لك بالدخول
-          </h1>
+          <h1>غير مصرح لك بالدخول</h1>
 
-          <p>
-            هذه الصفحة مخصصة
-            لمدير المحتوى أو مدير
-            النظام.
-          </p>
+          <p>هذه الصفحة مخصصة لمدير المحتوى أو مدير النظام.</p>
 
-          <Link
-            className="button button--primary"
-            to="/"
-          >
+          <Link className="button button--primary" to="/">
             العودة إلى الرئيسية
           </Link>
         </div>
@@ -756,15 +506,9 @@ function ContentSpeciesEditPage() {
     return (
       <main className="content-species-edit-page">
         <div className="content-species-loading">
-          <LoaderCircle
-            className="spinning-icon"
-            size={42}
-          />
+          <LoaderCircle className="spinning-icon" size={42} />
 
-          <p>
-            جاري تحميل بيانات
-            النوع...
-          </p>
+          <p>جاري تحميل بيانات النوع...</p>
         </div>
       </main>
     );
@@ -774,39 +518,25 @@ function ContentSpeciesEditPage() {
     <main className="content-species-edit-page">
       <section className="content-species-edit-hero">
         <div className="page-container">
-          <Link
-            className="submission-back-link"
-            to="/content/species"
-          >
-            <ArrowRight
-              size={18}
-            />
-
+          <Link className="submission-back-link" to="/content/species">
+            <ArrowRight size={18} />
             العودة إلى إدارة الأنواع
           </Link>
 
           <span className="eyebrow">
-            <ShieldCheck
-              size={18}
-            />
-
+            <ShieldCheck size={18} />
             إدارة المحتوى
           </span>
 
-          <h1>
-            تعديل بيانات النوع
-          </h1>
+          <h1>تعديل بيانات النوع</h1>
 
           <p>
-            عدّل البيانات والصور
-            ثم احفظ التغييرات لتظهر
-            مباشرة في دليل الأفاعي.
+            عدّل البيانات والصور ثم احفظ التغييرات لتظهر مباشرة في دليل الأفاعي.
           </p>
         </div>
       </section>
 
       <section className="page-container content-species-edit-container">
-
         {/* =========================
             Species images
             ========================= */}
@@ -819,15 +549,10 @@ function ContentSpeciesEditPage() {
                 صور النوع
               </span>
 
-              <h2>
-                إدارة صور الأفعى
-              </h2>
+              <h2>إدارة صور الأفعى</h2>
 
               <p>
-                أضف الصور أو احذفها
-                أو اختر الصورة التي
-                ستظهر كرئيسية في
-                الدليل.
+                أضف الصور أو احذفها أو اختر الصورة التي ستظهر كرئيسية في الدليل.
               </p>
             </div>
 
@@ -837,34 +562,23 @@ function ContentSpeciesEditPage() {
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 hidden
-                onChange={
-                  handleImageUpload
-                }
+                onChange={handleImageUpload}
               />
 
               <button
                 type="button"
                 className="button button--primary"
-                disabled={
-                  uploadingImage
-                }
-                onClick={() =>
-                  fileInputRef.current?.click()
-                }
+                disabled={uploadingImage}
+                onClick={() => fileInputRef.current?.click()}
               >
                 {uploadingImage ? (
                   <>
-                    <LoaderCircle
-                      className="spinning-icon"
-                      size={18}
-                    />
+                    <LoaderCircle className="spinning-icon" size={18} />
                     جاري رفع الصورة...
                   </>
                 ) : (
                   <>
-                    <ImagePlus
-                      size={18}
-                    />
+                    <ImagePlus size={18} />
                     إضافة صورة
                   </>
                 )}
@@ -876,145 +590,95 @@ function ContentSpeciesEditPage() {
             <div className="species-images-empty">
               <Images size={40} />
 
-              <h3>
-                لا توجد صور لهذا
-                النوع
-              </h3>
+              <h3>لا توجد صور لهذا النوع</h3>
 
-              <p>
-                يمكنك إضافة أول صورة
-                باستخدام زر إضافة
-                صورة.
-              </p>
+              <p>يمكنك إضافة أول صورة باستخدام زر إضافة صورة.</p>
             </div>
           ) : (
             <div className="species-images-grid">
-              {images.map(
-                (image) => {
-                  const imageUrl =
-                    getImageUrl(
-                      image
-                    );
+              {images.map((image) => {
+                const imageUrl = getImageUrl(image);
 
-                  return (
-                    <article
-                      key={image.id}
-                      className={`species-image-card ${
-                        image.is_primary
-                          ? "species-image-card--primary"
-                          : ""
-                      }`}
-                    >
-                      <div className="species-image-card__preview">
-                        {imageUrl ? (
-                          <img
-                            src={
-                              imageUrl
-                            }
-                            alt={
-                              formData.arabic_name ||
-                              "صورة الأفعى"
-                            }
-                          />
-                        ) : (
-                          <span>
-                            🐍
-                          </span>
-                        )}
+                return (
+                  <article
+                    key={image.id}
+                    className={`species-image-card ${
+                      image.is_primary ? "species-image-card--primary" : ""
+                    }`}
+                  >
+                    <div className="species-image-card__preview">
+                      {imageUrl ? (
+                        <img
+                          src={imageUrl}
+                          alt={formData.arabic_name || "صورة الأفعى"}
+                        />
+                      ) : (
+                        <span>🐍</span>
+                      )}
 
-                        {image.is_primary && (
-                          <div className="species-image-primary-badge">
-                            <Crown
-                              size={15}
-                            />
-                            الصورة الرئيسية
-                          </div>
-                        )}
-                      </div>
+                      {image.is_primary && (
+                        <div className="species-image-primary-badge">
+                          <Crown size={15} />
+                          الصورة الرئيسية
+                        </div>
+                      )}
+                    </div>
 
-                      <div className="species-image-card__actions">
-                        {!image.is_primary && (
-                          <button
-                            type="button"
-                            className="species-image-action species-image-action--primary"
-                            disabled={
-                              settingPrimaryId ===
-                                image.id ||
-                              Boolean(
-                                deletingImageId
-                              ) ||
-                              uploadingImage
-                            }
-                            onClick={() =>
-                              handleSetPrimaryImage(
-                                image
-                              )
-                            }
-                          >
-                            {settingPrimaryId ===
-                            image.id ? (
-                              <>
-                                <LoaderCircle
-                                  className="spinning-icon"
-                                  size={16}
-                                />
-
-                                جاري التغيير...
-                              </>
-                            ) : (
-                              <>
-                                <Crown
-                                  size={16}
-                                />
-
-                                جعلها رئيسية
-                              </>
-                            )}
-                          </button>
-                        )}
-
+                    <div className="species-image-card__actions">
+                      {!image.is_primary && (
                         <button
                           type="button"
-                          className="species-image-action species-image-action--delete"
+                          className="species-image-action species-image-action--primary"
                           disabled={
-                            deletingImageId ===
-                              image.id ||
-                            Boolean(
-                              settingPrimaryId
-                            ) ||
+                            settingPrimaryId === image.id ||
+                            Boolean(deletingImageId) ||
                             uploadingImage
                           }
-                          onClick={() =>
-                            handleDeleteImage(
-                              image
-                            )
-                          }
+                          onClick={() => handleSetPrimaryImage(image)}
                         >
-                          {deletingImageId ===
-                          image.id ? (
+                          {settingPrimaryId === image.id ? (
                             <>
                               <LoaderCircle
                                 className="spinning-icon"
                                 size={16}
                               />
-
-                              جاري الحذف...
+                              جاري التغيير...
                             </>
                           ) : (
                             <>
-                              <Trash2
-                                size={16}
-                              />
-
-                              حذف الصورة
+                              <Crown size={16} />
+                              جعلها رئيسية
                             </>
                           )}
                         </button>
-                      </div>
-                    </article>
-                  );
-                }
-              )}
+                      )}
+
+                      <button
+                        type="button"
+                        className="species-image-action species-image-action--delete"
+                        disabled={
+                          deletingImageId === image.id ||
+                          Boolean(settingPrimaryId) ||
+                          uploadingImage
+                        }
+                        onClick={() => handleDeleteImage(image)}
+                      >
+                        {deletingImageId === image.id ? (
+                          <>
+                            <LoaderCircle className="spinning-icon" size={16} />
+                            جاري الحذف...
+                          </>
+                        ) : (
+                          <>
+                            <Trash2 size={16} />
+                            حذف الصورة
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
@@ -1023,10 +687,7 @@ function ContentSpeciesEditPage() {
             Species text data
             ========================= */}
 
-        <form
-          className="content-species-edit-form"
-          onSubmit={handleSubmit}
-        >
+        <form className="content-species-edit-form" onSubmit={handleSubmit}>
           <div className="publish-species-grid">
             <label className="expert-field">
               <span>
@@ -1037,9 +698,7 @@ function ContentSpeciesEditPage() {
               <input
                 name="arabic_name"
                 type="text"
-                value={
-                  formData.arabic_name
-                }
+                value={formData.arabic_name}
                 disabled={saving}
                 onChange={handleChange}
               />
@@ -1054,9 +713,7 @@ function ContentSpeciesEditPage() {
               <input
                 name="english_name"
                 type="text"
-                value={
-                  formData.english_name
-                }
+                value={formData.english_name}
                 disabled={saving}
                 onChange={handleChange}
               />
@@ -1071,111 +728,75 @@ function ContentSpeciesEditPage() {
               <input
                 name="scientific_name"
                 type="text"
-                value={
-                  formData.scientific_name
-                }
+                value={formData.scientific_name}
                 disabled={saving}
                 onChange={handleChange}
               />
             </label>
 
             <label className="expert-field">
-              <span>
-                حالة السمّية
-              </span>
+              <span>حالة السمّية</span>
 
               <select
                 name="venom_status"
-                value={
-                  formData.venom_status
-                }
+                value={formData.venom_status}
                 disabled={saving}
                 onChange={handleChange}
               >
-                <option value="UNKNOWN">
-                  غير معروفة
-                </option>
+                <option value="UNKNOWN">غير معروفة</option>
 
-                <option value="VENOMOUS">
-                  سامة
-                </option>
+                <option value="VENOMOUS">سامة</option>
 
-                <option value="MILDLY_VENOMOUS">
-                  سامة بدرجة خفيفة
-                </option>
+                <option value="MILDLY_VENOMOUS">سامة بدرجة خفيفة</option>
 
-                <option value="NON_VENOMOUS">
-                  غير سامة
-                </option>
+                <option value="NON_VENOMOUS">غير سامة</option>
               </select>
             </label>
 
             <label className="expert-field">
-              <span>
-                مستوى الخطورة
-              </span>
+              <span>مستوى الخطورة</span>
 
               <select
                 name="danger_level"
-                value={
-                  formData.danger_level
-                }
+                value={formData.danger_level}
                 disabled={saving}
                 onChange={handleChange}
               >
-                <option value="UNKNOWN">
-                  غير معروف
-                </option>
+                <option value="UNKNOWN">غير معروف</option>
 
-                <option value="LOW">
-                  قليل الخطورة
-                </option>
+                <option value="LOW">قليل الخطورة</option>
 
-                <option value="MEDIUM">
-                  متوسط
-                </option>
+                <option value="MEDIUM">متوسط</option>
 
-                <option value="HIGH">
-                  خطير
-                </option>
+                <option value="HIGH">خطير</option>
 
-                <option value="CRITICAL">
-                  شديد الخطورة
-                </option>
+                <option value="CRITICAL">شديد الخطورة</option>
               </select>
             </label>
 
             <label className="expert-field">
-              <span>
-                الحد الأدنى للطول — سم
-              </span>
+              <span>الحد الأدنى للطول — سم</span>
 
               <input
                 name="minimum_size_cm"
                 type="number"
                 min="1"
                 step="0.1"
-                value={
-                  formData.minimum_size_cm
-                }
+                value={formData.minimum_size_cm}
                 disabled={saving}
                 onChange={handleChange}
               />
             </label>
 
             <label className="expert-field">
-              <span>
-                الحد الأقصى للطول — سم
-              </span>
+              <span>الحد الأقصى للطول — سم</span>
 
               <input
                 name="maximum_size_cm"
                 type="number"
                 min="1"
                 step="0.1"
-                value={
-                  formData.maximum_size_cm
-                }
+                value={formData.maximum_size_cm}
                 disabled={saving}
                 onChange={handleChange}
               />
@@ -1190,9 +811,7 @@ function ContentSpeciesEditPage() {
               <textarea
                 name="description"
                 rows="5"
-                value={
-                  formData.description
-                }
+                value={formData.description}
                 disabled={saving}
                 onChange={handleChange}
               />
@@ -1207,9 +826,7 @@ function ContentSpeciesEditPage() {
               <textarea
                 name="behavior"
                 rows="4"
-                value={
-                  formData.behavior
-                }
+                value={formData.behavior}
                 disabled={saving}
                 onChange={handleChange}
               />
@@ -1224,9 +841,7 @@ function ContentSpeciesEditPage() {
               <textarea
                 name="what_to_do"
                 rows="4"
-                value={
-                  formData.what_to_do
-                }
+                value={formData.what_to_do}
                 disabled={saving}
                 onChange={handleChange}
               />
@@ -1241,9 +856,7 @@ function ContentSpeciesEditPage() {
               <textarea
                 name="what_not_to_do"
                 rows="4"
-                value={
-                  formData.what_not_to_do
-                }
+                value={formData.what_not_to_do}
                 disabled={saving}
                 onChange={handleChange}
               />
@@ -1252,9 +865,7 @@ function ContentSpeciesEditPage() {
 
           {error && (
             <div className="expert-form-message expert-form-message--error">
-              <AlertTriangle
-                size={21}
-              />
+              <AlertTriangle size={21} />
 
               <p>{error}</p>
             </div>
@@ -1262,21 +873,14 @@ function ContentSpeciesEditPage() {
 
           {success && (
             <div className="expert-form-message expert-form-message--success">
-              <CheckCircle2
-                size={22}
-              />
+              <CheckCircle2 size={22} />
 
-              <p>
-                {success}
-              </p>
+              <p>{success}</p>
             </div>
           )}
 
           <div className="content-species-edit-actions">
-            <Link
-              className="button button--secondary"
-              to="/content/species"
-            >
+            <Link className="button button--secondary" to="/content/species">
               إلغاء
             </Link>
 
@@ -1287,19 +891,12 @@ function ContentSpeciesEditPage() {
             >
               {saving ? (
                 <>
-                  <LoaderCircle
-                    className="spinning-icon"
-                    size={19}
-                  />
-
+                  <LoaderCircle className="spinning-icon" size={19} />
                   جاري الحفظ...
                 </>
               ) : (
                 <>
-                  <Save
-                    size={19}
-                  />
-
+                  <Save size={19} />
                   حفظ التعديلات
                 </>
               )}
