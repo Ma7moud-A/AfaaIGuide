@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import {
   Link,
   useLocation,
@@ -15,15 +16,16 @@ import {
   ImageUp,
   LogIn,
   LogOut,
+  Menu,
   PlusCircle,
   ShieldCheck,
   User,
+  X,
 } from "lucide-react";
 
 function getStoredUser() {
   try {
-    const storedUser =
-      localStorage.getItem("afaai_user");
+    const storedUser = localStorage.getItem("afaai_user");
 
     return storedUser
       ? JSON.parse(storedUser)
@@ -58,11 +60,12 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [user, setUser] =
-    useState(getStoredUser);
+  const [user, setUser] = useState(getStoredUser);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     setUser(getStoredUser());
+    setMenuOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -93,11 +96,36 @@ function Navbar() {
     };
   }, []);
 
+  useEffect(() => {
+    function handleResize() {
+      if (window.innerWidth > 760) {
+        setMenuOpen(false);
+      }
+    }
+
+    window.addEventListener(
+      "resize",
+      handleResize
+    );
+
+    return () => {
+      window.removeEventListener(
+        "resize",
+        handleResize
+      );
+    };
+  }, []);
+
+  function closeMenu() {
+    setMenuOpen(false);
+  }
+
   function handleLogout() {
     localStorage.removeItem("afaai_token");
     localStorage.removeItem("afaai_user");
 
     setUser(null);
+    setMenuOpen(false);
 
     window.dispatchEvent(
       new Event("afaai-auth-change")
@@ -122,6 +150,7 @@ function Navbar() {
         <Link
           className="brand"
           to="/"
+          onClick={closeMenu}
         >
           <div className="brand__logo">
             أ
@@ -138,9 +167,36 @@ function Navbar() {
           </div>
         </Link>
 
-        <nav className="navbar__links">
+        <button
+          type="button"
+          className="navbar__toggle"
+          aria-label={
+            menuOpen
+              ? "إغلاق القائمة"
+              : "فتح القائمة"
+          }
+          aria-expanded={menuOpen}
+          onClick={() =>
+            setMenuOpen(
+              (current) => !current
+            )
+          }
+        >
+          {menuOpen ? (
+            <X size={22} />
+          ) : (
+            <Menu size={22} />
+          )}
+        </button>
+
+        <nav
+          className={`navbar__links ${
+            menuOpen ? "is-open" : ""
+          }`}
+        >
           <Link
             to="/"
+            onClick={closeMenu}
             className={
               location.pathname === "/"
                 ? "is-active"
@@ -153,6 +209,7 @@ function Navbar() {
 
           <Link
             to="/species"
+            onClick={closeMenu}
             className={
               location.pathname.startsWith(
                 "/species"
@@ -167,6 +224,7 @@ function Navbar() {
 
           <Link
             to="/identify"
+            onClick={closeMenu}
             className={
               location.pathname ===
               "/identify"
@@ -180,6 +238,7 @@ function Navbar() {
 
           <Link
             to="/chat"
+            onClick={closeMenu}
             className={
               location.pathname === "/chat"
                 ? "is-active"
@@ -194,6 +253,7 @@ function Navbar() {
             <>
               <Link
                 to="/content/submissions"
+                onClick={closeMenu}
                 className={
                   location.pathname.startsWith(
                     "/content/submissions"
@@ -208,6 +268,7 @@ function Navbar() {
 
               <Link
                 to="/content/species"
+                onClick={closeMenu}
                 className={
                   location.pathname.startsWith(
                     "/content/species"
@@ -226,6 +287,7 @@ function Navbar() {
             <>
               <Link
                 to="/expert/submissions/new"
+                onClick={closeMenu}
                 className={
                   location.pathname ===
                   "/expert/submissions/new"
@@ -239,9 +301,10 @@ function Navbar() {
 
               <Link
                 to="/expert/submissions"
+                onClick={closeMenu}
                 className={
                   location.pathname ===
-                  "/expert/submissions" ||
+                    "/expert/submissions" ||
                   (
                     location.pathname.startsWith(
                       "/expert/submissions/"
@@ -263,6 +326,7 @@ function Navbar() {
             <Link
               className="navbar__login"
               to="/login"
+              onClick={closeMenu}
             >
               <LogIn size={17} />
               تسجيل الدخول
@@ -279,9 +343,7 @@ function Navbar() {
                         "CONTENT_ADMIN",
                       ].includes(role)
                   ) ? (
-                    <ShieldCheck
-                      size={18}
-                    />
+                    <ShieldCheck size={18} />
                   ) : (
                     <User size={18} />
                   )}
