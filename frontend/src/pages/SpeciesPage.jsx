@@ -46,25 +46,39 @@ function getDangerInfo(dangerLevel) {
 }
 
 function getMediaStorageKey(media) {
+  if (!media) {
+    return null;
+  }
+
   return (
-    media?.storage_key ||
-    media?.storageKey ||
-    media?.media_asset?.storage_key ||
-    media?.mediaAsset?.storage_key ||
+    media.storage_key ||
+    media.storageKey ||
+    media.media_asset?.storage_key ||
+    media.mediaAsset?.storage_key ||
     null
   );
 }
 
 function getSpeciesImageUrl(snake) {
+  if (!snake) {
+    return "";
+  }
+
   const directImage =
-    snake?.primary_image || snake?.primaryImage || snake?.image || null;
+    snake.primary_image ||
+    snake.primaryImage ||
+    snake.image ||
+    null;
 
   let storageKey = getMediaStorageKey(directImage);
 
-  if (!storageKey && Array.isArray(snake?.images)) {
+  if (!storageKey && Array.isArray(snake.images)) {
     const primaryImage =
-      snake.images.find((image) => image?.is_primary || image?.isPrimary) ||
-      snake.images[0];
+      snake.images.find(
+        (image) =>
+          image?.is_primary === true ||
+          image?.isPrimary === true
+      ) || snake.images[0];
 
     storageKey = getMediaStorageKey(primaryImage);
   }
@@ -76,32 +90,93 @@ function getSpeciesImageUrl(snake) {
   return getUploadUrl(storageKey);
 }
 
+function SpeciesImage({ snake }) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  const imageUrl = getSpeciesImageUrl(snake);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [imageUrl]);
+
+  if (!imageUrl || imageFailed) {
+    return (
+      <div className="species-card__image">
+        <span>🐍</span>
+
+        <div className="species-card__image-overlay">
+          لا توجد صورة متاحة
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="species-card__image">
+      <img
+        src={imageUrl}
+        alt={snake.arabic_name || "صورة أفعى"}
+        loading="lazy"
+        onError={() => {
+          console.error(
+            "Failed to load species image:",
+            snake.id,
+            snake.arabic_name,
+            imageUrl
+          );
+
+          setImageFailed(true);
+        }}
+      />
+
+      <div className="species-card__image-overlay">
+        عرض الصورة
+      </div>
+    </div>
+  );
+}
+
 function SpeciesPage() {
   const [species, setSpecies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [dangerFilter, setDangerFilter] = useState("ALL");
-  const [venomFilter, setVenomFilter] = useState("ALL");
+  const [dangerFilter, setDangerFilter] =
+    useState("ALL");
+  const [venomFilter, setVenomFilter] =
+    useState("ALL");
 
   useEffect(() => {
     let requestCancelled = false;
 
     async function loadSpecies() {
       try {
-        const response = await axios.get(`${API_URL}/species`);
+        setLoading(true);
+        setError("");
+
+        const response = await axios.get(
+          `${API_URL}/species`
+        );
 
         if (!requestCancelled) {
-          setSpecies(
-            Array.isArray(response.data?.data) ? response.data.data : [],
-          );
+          const receivedSpecies =
+            Array.isArray(response.data?.data)
+              ? response.data.data
+              : [];
+
+          setSpecies(receivedSpecies);
         }
       } catch (requestError) {
-        console.error("Failed to load species:", requestError);
+        console.error(
+          "Failed to load species:",
+          requestError
+        );
 
         if (!requestCancelled) {
-          setError("تعذر تحميل دليل الأفاعي");
+          setError(
+            "تعذر تحميل دليل الأفاعي. حاول تحديث الصفحة مرة أخرى."
+          );
         }
       } finally {
         if (!requestCancelled) {
@@ -118,24 +193,46 @@ function SpeciesPage() {
   }, []);
 
   const filteredSpecies = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase();
+    const normalizedSearch = searchTerm
+      .trim()
+      .toLowerCase();
 
     return species.filter((snake) => {
+      const arabicName =
+        snake.arabic_name?.toLowerCase() || "";
+
+      const englishName =
+        snake.english_name?.toLowerCase() || "";
+
+      const scientificName =
+        snake.scientific_name?.toLowerCase() || "";
+
       const matchesSearch =
         !normalizedSearch ||
-        snake.arabic_name?.toLowerCase().includes(normalizedSearch) ||
-        snake.english_name?.toLowerCase().includes(normalizedSearch) ||
-        snake.scientific_name?.toLowerCase().includes(normalizedSearch);
+        arabicName.includes(normalizedSearch) ||
+        englishName.includes(normalizedSearch) ||
+        scientificName.includes(normalizedSearch);
 
       const matchesDanger =
-        dangerFilter === "ALL" || snake.danger_level === dangerFilter;
+        dangerFilter === "ALL" ||
+        snake.danger_level === dangerFilter;
 
       const matchesVenom =
-        venomFilter === "ALL" || snake.venom_status === venomFilter;
+        venomFilter === "ALL" ||
+        snake.venom_status === venomFilter;
 
-      return matchesSearch && matchesDanger && matchesVenom;
+      return (
+        matchesSearch &&
+        matchesDanger &&
+        matchesVenom
+      );
     });
-  }, [species, searchTerm, dangerFilter, venomFilter]);
+  }, [
+    species,
+    searchTerm,
+    dangerFilter,
+    venomFilter,
+  ]);
 
   return (
     <main className="species-page">
@@ -150,8 +247,10 @@ function SpeciesPage() {
             <h1>دليل أفاعي فلسطين</h1>
 
             <p>
-              ابحث بين الأنواع المسجلة، وقارن مستوى الخطورة والسمّية، وافتح صفحة
-              كل نوع للاطلاع على التفاصيل.
+              ابحث بين الأنواع المسجلة، وقارن
+              مستوى الخطورة والسمّية، وافتح
+              صفحة كل نوع للاطلاع على
+              التفاصيل.
             </p>
           </div>
 
@@ -171,7 +270,11 @@ function SpeciesPage() {
               type="search"
               value={searchTerm}
               placeholder="ابحث بالاسم العربي أو الإنجليزي أو العلمي..."
-              onChange={(event) => setSearchTerm(event.target.value)}
+              onChange={(event) =>
+                setSearchTerm(
+                  event.target.value
+                )
+              }
             />
           </div>
 
@@ -180,39 +283,84 @@ function SpeciesPage() {
 
             <select
               value={dangerFilter}
-              onChange={(event) => setDangerFilter(event.target.value)}
+              onChange={(event) =>
+                setDangerFilter(
+                  event.target.value
+                )
+              }
             >
-              <option value="ALL">جميع مستويات الخطورة</option>
-              <option value="CRITICAL">شديدة الخطورة</option>
-              <option value="HIGH">خطيرة</option>
-              <option value="MEDIUM">متوسطة</option>
-              <option value="LOW">قليلة الخطورة</option>
-              <option value="UNKNOWN">غير معروفة</option>
+              <option value="ALL">
+                جميع مستويات الخطورة
+              </option>
+
+              <option value="CRITICAL">
+                شديدة الخطورة
+              </option>
+
+              <option value="HIGH">
+                خطيرة
+              </option>
+
+              <option value="MEDIUM">
+                متوسطة
+              </option>
+
+              <option value="LOW">
+                قليلة الخطورة
+              </option>
+
+              <option value="UNKNOWN">
+                غير معروفة
+              </option>
             </select>
 
             <select
               value={venomFilter}
-              onChange={(event) => setVenomFilter(event.target.value)}
+              onChange={(event) =>
+                setVenomFilter(
+                  event.target.value
+                )
+              }
             >
-              <option value="ALL">جميع حالات السمّية</option>
-              <option value="VENOMOUS">سامة</option>
-              <option value="MILDLY_VENOMOUS">سامة بدرجة خفيفة</option>
-              <option value="NON_VENOMOUS">غير سامة</option>
-              <option value="UNKNOWN">غير معروفة</option>
+              <option value="ALL">
+                جميع حالات السمّية
+              </option>
+
+              <option value="VENOMOUS">
+                سامة
+              </option>
+
+              <option value="MILDLY_VENOMOUS">
+                سامة بدرجة خفيفة
+              </option>
+
+              <option value="NON_VENOMOUS">
+                غير سامة
+              </option>
+
+              <option value="UNKNOWN">
+                غير معروفة
+              </option>
             </select>
           </div>
         </div>
 
         <div className="species-results-header">
           <p>
-            عرض <strong>{filteredSpecies.length}</strong> من أصل{" "}
+            عرض{" "}
+            <strong>
+              {filteredSpecies.length}
+            </strong>{" "}
+            من أصل{" "}
             <strong>{species.length}</strong>
           </p>
         </div>
 
         {loading && (
           <div className="species-grid">
-            {Array.from({ length: 8 }).map((_, index) => (
+            {Array.from({
+              length: 8,
+            }).map((_, index) => (
               <article
                 key={index}
                 className="species-card species-card--loading"
@@ -233,81 +381,112 @@ function SpeciesPage() {
         {!loading && error && (
           <div className="species-state species-state--error">
             <ShieldAlert size={35} />
+
             <h2>{error}</h2>
-            <p>تأكد من أن Backend يعمل على المنفذ 3000.</p>
+
+            <p>
+              تحقق من اتصالك بالإنترنت ثم
+              حاول مرة أخرى.
+            </p>
           </div>
         )}
 
-        {!loading && !error && filteredSpecies.length === 0 && (
-          <div className="species-state">
-            <Search size={35} />
-            <h2>لا توجد نتائج مطابقة</h2>
-            <p>جرّب تغيير كلمة البحث أو إزالة الفلاتر.</p>
-          </div>
-        )}
+        {!loading &&
+          !error &&
+          filteredSpecies.length === 0 && (
+            <div className="species-state">
+              <Search size={35} />
 
-        {!loading && !error && filteredSpecies.length > 0 && (
-          <div className="species-grid">
-            {filteredSpecies.map((snake, index) => {
-              const dangerInfo = getDangerInfo(snake.danger_level);
+              <h2>
+                لا توجد نتائج مطابقة
+              </h2>
 
-              const imageUrl = getSpeciesImageUrl(snake);
+              <p>
+                جرّب تغيير كلمة البحث أو إزالة
+                الفلاتر.
+              </p>
+            </div>
+          )}
 
-              return (
-                <article
-                  key={snake.id}
-                  className="species-card reveal"
-                  style={{
-                    animationDelay: `${index * 75}ms`,
-                  }}
-                >
-                  <div className="species-card__image">
-                    {imageUrl ? (
-                      <img
-                        src={imageUrl}
-                        alt={snake.arabic_name || "صورة أفعى"}
-                        loading="lazy"
+        {!loading &&
+          !error &&
+          filteredSpecies.length > 0 && (
+            <div className="species-grid">
+              {filteredSpecies.map(
+                (snake, index) => {
+                  const dangerInfo =
+                    getDangerInfo(
+                      snake.danger_level
+                    );
+
+                  return (
+                    <article
+                      key={snake.id}
+                      className="species-card reveal"
+                      style={{
+                        animationDelay: `${
+                          index * 75
+                        }ms`,
+                      }}
+                    >
+                      <SpeciesImage
+                        snake={snake}
                       />
-                    ) : (
-                      <span>🐍</span>
-                    )}
 
-                    <div className="species-card__image-overlay">
-                      عرض الصورة
-                    </div>
-                  </div>
+                      <div className="species-card__body">
+                        <h3>
+                          {snake.arabic_name}
+                        </h3>
 
-                  <div className="species-card__body">
-                    <h3>{snake.arabic_name}</h3>
-                    <p>{snake.english_name}</p>
-                    <small>{snake.scientific_name}</small>
+                        <p>
+                          {snake.english_name ||
+                            "—"}
+                        </p>
 
-                    <div className="species-card__badges">
-                      <span className={`danger-badge ${dangerInfo.className}`}>
-                        {dangerInfo.label}
-                      </span>
+                        <small>
+                          {snake.scientific_name ||
+                            "—"}
+                        </small>
 
-                      <span className="venom-badge">
-                        {snake.venom_status === "VENOMOUS"
-                          ? "سامة"
-                          : snake.venom_status === "MILDLY_VENOMOUS"
-                            ? "سمّية خفيفة"
-                            : snake.venom_status === "NON_VENOMOUS"
-                              ? "غير سامة"
-                              : "سمّيتها غير معروفة"}
-                      </span>
-                    </div>
+                        <div className="species-card__badges">
+                          <span
+                            className={`danger-badge ${dangerInfo.className}`}
+                          >
+                            {
+                              dangerInfo.label
+                            }
+                          </span>
 
-                    <Link className="card-button" to={`/species/${snake.id}`}>
-                      عرض التفاصيل
-                      <ArrowLeft size={16} />
-                    </Link>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-        )}
+                          <span className="venom-badge">
+                            {snake.venom_status ===
+                            "VENOMOUS"
+                              ? "سامة"
+                              : snake.venom_status ===
+                                  "MILDLY_VENOMOUS"
+                                ? "سمّية خفيفة"
+                                : snake.venom_status ===
+                                    "NON_VENOMOUS"
+                                  ? "غير سامة"
+                                  : "سمّيتها غير معروفة"}
+                          </span>
+                        </div>
+
+                        <Link
+                          className="card-button"
+                          to={`/species/${snake.id}`}
+                        >
+                          عرض التفاصيل
+                          <ArrowLeft
+                            size={16}
+                          />
+                        </Link>
+                      </div>
+                    </article>
+                  );
+                }
+              )}
+            </div>
+          )}
       </section>
     </main>
   );
