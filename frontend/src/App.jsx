@@ -1,4 +1,4 @@
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Link, Route, Routes } from "react-router-dom";
 import "./App.css";
 import Navbar from "./components/Navbar";
 import HomePage from "./pages/HomePage";
@@ -63,10 +63,9 @@ function App() {
             path="/content/species/:id/edit"
             element={<ContentSpeciesEditPage />}
           />
-          <Route path="*" element={<NotFoundPage />} />
-
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/disclaimer" element={<DisclaimerPage />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
 
         <footer className="footer">
