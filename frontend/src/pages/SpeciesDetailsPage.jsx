@@ -112,7 +112,7 @@ function getPrimarySpeciesImage(snake) {
     getMediaStorageKey(directImage);
 
   if (directStorageKey) {
-    return getUploadUrl(storageKey);
+    return getUploadUrl(directStorageKey);
   }
 
   const images = getSpeciesImages(snake);
