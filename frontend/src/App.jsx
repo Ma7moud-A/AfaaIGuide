@@ -17,6 +17,8 @@ import ContentSpeciesPage from "./pages/ContentSpeciesPage";
 import ContentSpeciesEditPage from "./pages/ContentSpeciesEditPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import ScrollToTop from "./components/ScrollToTop";
+import PrivacyPage from "./pages/PrivacyPage";
+import DisclaimerPage from "./pages/DisclaimerPage";
 
 function App() {
   return (
@@ -62,6 +64,9 @@ function App() {
             element={<ContentSpeciesEditPage />}
           />
           <Route path="*" element={<NotFoundPage />} />
+
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/disclaimer" element={<DisclaimerPage />} />
         </Routes>
 
         <footer className="footer">
@@ -78,8 +83,8 @@ function App() {
             <div>
               <h3>المعلومات</h3>
               <a href="#about">عن المشروع</a>
-              <a href="#privacy">سياسة الخصوصية</a>
-              <a href="#terms">إخلاء المسؤولية</a>
+              <Link to="/privacy">سياسة الخصوصية</Link>
+              <Link to="/disclaimer">إخلاء المسؤولية</Link>
             </div>
 
             <div>

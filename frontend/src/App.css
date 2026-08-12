@@ -6022,3 +6022,42 @@
     height: 205px;
   }
 }
+.legal-page {
+  min-height: 70vh;
+  padding: 70px 0;
+  background: var(--background);
+}
+
+.legal-page__content {
+  max-width: 900px;
+}
+
+.legal-page__content h1 {
+  margin: 12px 0 28px;
+  font-size: clamp(34px, 5vw, 52px);
+  color: var(--green-900);
+}
+
+.legal-page__content h2 {
+  margin: 32px 0 10px;
+  color: var(--green-800);
+}
+
+.legal-page__content p {
+  line-height: 2;
+  color: var(--muted);
+}
+
+.legal-page__content .button {
+  margin-top: 30px;
+}
+
+@media (max-width: 760px) {
+  .legal-page {
+    padding: 42px 0;
+  }
+
+  .legal-page__content h1 {
+    font-size: 34px;
+  }
+}
