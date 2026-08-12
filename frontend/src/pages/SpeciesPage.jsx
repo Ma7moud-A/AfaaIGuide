@@ -90,7 +90,7 @@ function SpeciesPage() {
 
     async function loadSpecies() {
       try {
-        const response = await axios.get("`${API_URL}/species`");
+        const response = await axios.get(`${API_URL}/species`);
 
         if (!requestCancelled) {
           setSpecies(
