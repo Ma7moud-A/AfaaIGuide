@@ -6061,3 +6061,99 @@
     font-size: 34px;
   }
 }
+/* =====================================================
+   Species Details Gallery - Final Mobile Fix
+   ===================================================== */
+
+@media (max-width: 700px) {
+
+  /* ---------- الصورة الرئيسية ---------- */
+
+  .species-details-image {
+    width: 100% !important;
+
+    /* نلغي الارتفاعات القديمة */
+    min-height: 0 !important;
+    height: auto !important;
+
+    /* حجم ثابت ومتناسق على الهاتف */
+    aspect-ratio: 4 / 3 !important;
+
+    overflow: hidden !important;
+  }
+
+  .species-details-real-image {
+    width: 100% !important;
+    height: 100% !important;
+
+    /* يلغي min-height: 480px و 300px القديمة */
+    min-height: 0 !important;
+    max-height: none !important;
+
+    /* يمنع قص الأفعى */
+    object-fit: contain !important;
+    object-position: center !important;
+
+    display: block !important;
+  }
+
+
+  /* ---------- شريط الصور الصغيرة ---------- */
+
+  .species-details-thumbnails {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+
+    gap: 10px !important;
+
+    /* الحل للصور 5 - 8 */
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+
+    padding: 5px 2px 12px !important;
+    margin-top: 14px !important;
+
+    scroll-behavior: smooth !important;
+    scroll-snap-type: x proximity !important;
+
+    -webkit-overflow-scrolling: touch !important;
+    touch-action: pan-x !important;
+
+    scrollbar-width: none !important;
+  }
+
+  .species-details-thumbnails::-webkit-scrollbar {
+    display: none !important;
+  }
+
+
+  /* ---------- كل صورة صغيرة ---------- */
+
+  .species-details-thumbnails button {
+    /*
+      أهم سطر للشريط:
+      يمنع الصور من الانضغاط
+    */
+    flex: 0 0 80px !important;
+
+    width: 80px !important;
+    min-width: 80px !important;
+    max-width: 80px !important;
+
+    height: 65px !important;
+
+    scroll-snap-align: start !important;
+  }
+
+  .species-details-thumbnails button img {
+    width: 100% !important;
+    height: 100% !important;
+
+    object-fit: cover !important;
+  }
+}
