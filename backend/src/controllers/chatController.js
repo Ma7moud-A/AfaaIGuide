@@ -1,6 +1,5 @@
 const crypto = require("crypto");
 const pool = require("../config/db");
-const fs = require("fs/promises");
 
 const {
     analyzeSnakeImage,
@@ -493,9 +492,8 @@ async function sendImageMessage(req, res) {
             } ms`
         );
 
-        const processedImageBuffer = await fs.readFile(
-            savedImage.absolutePath
-        );
+        const processedImageBuffer =
+            savedImage.processedBuffer;
 
         /*
          * 3. We send the processed version to Gemini.

@@ -1,13 +1,108 @@
 const crypto = require("crypto");
-const fs = require("fs/promises");
-const path = require("path");
 const sharp = require("sharp");
 
-const uploadsRoot = path.resolve(
-  __dirname,
-  "../../uploads"
-);
+const {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
 
+const allowedCategories = new Set([
+  "chat",
+  "expert-submissions",
+  "species",
+]);
+
+let r2Client = null;
+
+function getRequiredEnv(name) {
+  const value = process.env[name];
+
+  if (!value || !value.trim()) {
+    throw new Error(
+      `${name} environment variable is not configured`
+    );
+  }
+
+  return value.trim();
+}
+
+function getR2Client() {
+  if (r2Client) {
+    return r2Client;
+  }
+
+  const accountId = getRequiredEnv(
+    "R2_ACCOUNT_ID"
+  );
+
+  const accessKeyId = getRequiredEnv(
+    "R2_ACCESS_KEY_ID"
+  );
+
+  const secretAccessKey = getRequiredEnv(
+    "R2_SECRET_ACCESS_KEY"
+  );
+
+  r2Client = new S3Client({
+    region: "auto",
+
+    endpoint:
+      `https://${accountId}.r2.cloudflarestorage.com`,
+
+    credentials: {
+      accessKeyId,
+      secretAccessKey,
+    },
+  });
+
+  return r2Client;
+}
+
+function getBucketName() {
+  return getRequiredEnv(
+    "R2_BUCKET_NAME"
+  );
+}
+
+function normalizeCategory(category) {
+  return allowedCategories.has(category)
+    ? category
+    : "chat";
+}
+
+function createStorageKey(category) {
+  const now = new Date();
+
+  const year = String(
+    now.getUTCFullYear()
+  );
+
+  const month = String(
+    now.getUTCMonth() + 1
+  ).padStart(2, "0");
+
+  const safeCategory =
+    normalizeCategory(category);
+
+  const filename =
+    `${crypto.randomUUID()}.webp`;
+
+  return [
+    safeCategory,
+    year,
+    month,
+    filename,
+  ].join("/");
+}
+
+/*
+ * الاسم بقي saveImageLocally حتى لا نضطر
+ * لتعديل جميع الـcontrollers الآن.
+ *
+ * لكنه لم يعد يحفظ محليًا إطلاقًا.
+ * الصورة تذهب إلى Cloudflare R2.
+ */
 async function saveImageLocally(
   fileBuffer,
   category = "chat"
@@ -21,47 +116,10 @@ async function saveImageLocally(
     );
   }
 
-  const now = new Date();
-
-  const year = String(now.getUTCFullYear());
-
-  const month = String(
-    now.getUTCMonth() + 1
-  ).padStart(2, "0");
-
-  const allowedCategories = new Set([
-    "chat",
-    "expert-submissions",
-    "species",
-  ]);
-
-  const safeCategory = allowedCategories.has(category)
-    ? category
-    : "chat";
-
-  const relativeDirectory = path.join(
-    safeCategory,
-    year,
-    month
-  );
-
-  const absoluteDirectory = path.join(
-    uploadsRoot,
-    relativeDirectory
-  );
-
-  await fs.mkdir(absoluteDirectory, {
-    recursive: true,
-  });
-
-  const filename = `${crypto.randomUUID()}.webp`;
-
-  const absolutePath = path.join(
-    absoluteDirectory,
-    filename
-  );
-
-  const imageInfo = await sharp(fileBuffer)
+  const {
+    data: processedBuffer,
+    info: imageInfo,
+  } = await sharp(fileBuffer)
     .rotate()
     .resize({
       width: 1280,
@@ -72,43 +130,90 @@ async function saveImageLocally(
     .webp({
       quality: 82,
     })
-    .toFile(absolutePath);
+    .toBuffer({
+      resolveWithObject: true,
+    });
 
-  const storageKey = path
-    .join(relativeDirectory, filename)
-    .replaceAll("\\", "/");
+  const storageKey =
+    createStorageKey(category);
+
+  const client =
+    getR2Client();
+
+  await client.send(
+    new PutObjectCommand({
+      Bucket: getBucketName(),
+      Key: storageKey,
+      Body: processedBuffer,
+      ContentType: "image/webp",
+
+      CacheControl:
+        "public, max-age=31536000, immutable",
+    })
+  );
 
   return {
     storageKey,
-    absolutePath,
+
+    /*
+     * نرجع الـbuffer لأن Chat/Gemini يحتاج
+     * الصورة بعد معالجتها.
+     */
+    processedBuffer,
+
     mimeType: "image/webp",
-    sizeBytes: imageInfo.size,
+
+    sizeBytes:
+      imageInfo.size ??
+      processedBuffer.length,
+
     width: imageInfo.width,
+
     height: imageInfo.height,
   };
 }
 
-async function deleteLocalImage(storageKey) {
-  const absolutePath = path.resolve(
-    uploadsRoot,
+/*
+ * نفس الاسم القديم حفاظًا على توافق
+ * الـcontrollers الحالية.
+ *
+ * الحذف الآن يتم من R2.
+ */
+async function deleteLocalImage(
+  storageKey
+) {
+  if (
+    !storageKey ||
+    typeof storageKey !== "string"
+  ) {
+    throw new Error(
+      "A valid storage key is required"
+    );
+  }
+
+  const normalizedKey =
     storageKey
-  );
+      .replaceAll("\\", "/")
+      .replace(/^\/+/, "");
 
   if (
-    !absolutePath.startsWith(
-      uploadsRoot + path.sep
-    )
+    normalizedKey.includes("../") ||
+    normalizedKey.includes("..\\")
   ) {
-    throw new Error("Invalid storage key");
+    throw new Error(
+      "Invalid storage key"
+    );
   }
 
-  try {
-    await fs.unlink(absolutePath);
-  } catch (error) {
-    if (error.code !== "ENOENT") {
-      throw error;
-    }
-  }
+  const client =
+    getR2Client();
+
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: getBucketName(),
+      Key: normalizedKey,
+    })
+  );
 }
 
 module.exports = {
